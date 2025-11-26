@@ -1,0 +1,75 @@
+// Suppress React Native Web deprecation warnings
+if (typeof window !== 'undefined') {
+    const originalWarn = console.warn;
+    console.warn = (...args) => {
+        const message = args[0];
+        if (
+            typeof message === 'string' &&
+            (message.includes('shadow*') ||
+                message.includes('pointerEvents') ||
+                message.includes('Cannot record touch'))
+        ) {
+            return;
+        }
+        originalWarn.apply(console, args);
+    };
+}
+
+import { Stack, useRouter, useSegments } from 'expo-router';
+import { useEffect } from 'react';
+import useAuthStore from '../store/authStore';
+import useSyncStore from '../store/syncStore';
+
+import { ThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native';
+import useThemeStore from '../store/themeStore';
+import ErrorBoundary from '../components/ErrorBoundary';
+
+export default function Layout() {
+    const { user, isLoading, loadUser } = useAuthStore();
+    const { isDarkMode } = useThemeStore();
+    const { initialize: initializeSync } = useSyncStore();
+    const segments = useSegments();
+    const router = useRouter();
+
+    useEffect(() => {
+        loadUser();
+        // Initialize sync for auto-sync and offline support
+        initializeSync();
+    }, []);
+
+    useEffect(() => {
+        if (isLoading) return;
+
+        const inAuthGroup = segments[0] === '(auth)';
+        const isChoosingAvatar = segments[1] === 'choose-avatar';
+
+        if (!user && !inAuthGroup) {
+            router.replace('/(auth)/login');
+        } else if (user && inAuthGroup && !isChoosingAvatar) {
+            // If user hasn't completed onboarding, send them to avatar selection
+            if (!user.onboardingCompleted) {
+                router.replace('/(auth)/choose-avatar');
+            } else {
+                router.replace('/(tabs)');
+            }
+        } else if (user && !inAuthGroup && !user.onboardingCompleted) {
+            // If authenticated user is in tabs but hasn't completed onboarding, redirect to avatar selection
+            router.replace('/(auth)/choose-avatar');
+        }
+    }, [user, segments, isLoading]);
+
+    if (isLoading) return null;
+
+    return (
+        <ErrorBoundary>
+            <ThemeProvider value={isDarkMode ? DarkTheme : DefaultTheme}>
+                <Stack>
+                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                    <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                    <Stack.Screen name="profile/edit" options={{ headerShown: false }} />
+                    <Stack.Screen name="notifications/index" options={{ headerShown: false }} />
+                </Stack>
+            </ThemeProvider>
+        </ErrorBoundary>
+    );
+}

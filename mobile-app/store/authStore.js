@@ -1,0 +1,203 @@
+import { create } from 'zustand';
+import secureStorage from '../services/secureStorage';
+import api from '../services/api';
+import { router } from 'expo-router';
+
+const useAuthStore = create((set) => ({
+    user: null,
+    token: null,
+    isLoading: true,
+    error: null,
+    isAuthenticated: false,
+
+    loadUser: async () => {
+        try {
+            const token = await secureStorage.getItem('userToken');
+            const userInfo = await secureStorage.getItem('userInfo');
+
+            if (token && userInfo) {
+                set({ token, user: JSON.parse(userInfo), isLoading: false, isAuthenticated: true });
+            } else {
+                set({ token: null, user: null, isLoading: false, isAuthenticated: false });
+            }
+        } catch (e) {
+            console.error('Failed to load user', e);
+            set({ isLoading: false, isAuthenticated: false });
+        }
+    },
+
+    refreshUser: async () => {
+        try {
+            const response = await api.get('/users/profile');
+            const user = response.data;
+            await secureStorage.setItem('userInfo', JSON.stringify(user));
+            set({ user });
+        } catch (error) {
+            console.error('Failed to refresh user', error);
+        }
+    },
+
+    login: async (email, password) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await api.post('/users/login', { email, password });
+            const { token, ...user } = response.data;
+
+            await secureStorage.setItem('userToken', token);
+            await secureStorage.setItem('userInfo', JSON.stringify(user));
+
+            set({ token, user, isLoading: false, isAuthenticated: true });
+            router.replace('/(tabs)');
+        } catch (error) {
+            set({
+                isLoading: false,
+                error: error.response?.data?.message || 'Login failed',
+                isAuthenticated: false
+            });
+            throw error;
+        }
+    },
+
+    register: async (name, email, password, gender) => {
+        set({ isLoading: true, error: null });
+        try {
+            await api.post('/users', { name, email, password, gender });
+            set({ isLoading: false });
+            return true;
+        } catch (error) {
+            set({
+                isLoading: false,
+                error: error.response?.data?.message || 'Registration failed',
+                isAuthenticated: false
+            });
+            throw error;
+        }
+    },
+
+    updateProfile: async (userData) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await api.put('/users/profile', userData);
+            const { token, ...user } = response.data;
+
+            // Merge the updated data to ensure profilePicture and gender are saved
+            const updatedUser = { ...user, ...userData };
+
+            await secureStorage.setItem('userToken', token);
+            await secureStorage.setItem('userInfo', JSON.stringify(updatedUser));
+
+            set({ token, user: updatedUser, isLoading: false });
+            return true;
+        } catch (error) {
+            set({
+                isLoading: false,
+                error: error.response?.data?.message || 'Update failed'
+            });
+            return false;
+        }
+    },
+
+    verifyEmail: async (token) => {
+        set({ isLoading: true, error: null });
+        try {
+            await api.get(`/users/verify/${token}`);
+            set({ isLoading: false });
+            return true;
+        } catch (error) {
+            set({ isLoading: false, error: error.response?.data?.message || 'Verification failed' });
+            return false;
+        }
+    },
+
+    checkVerificationStatus: async (email) => {
+        try {
+            const response = await api.get(`/users/check-verification/${email}`);
+            if (response.data.isVerified) {
+                const { token, user } = response.data;
+                await secureStorage.setItem('userToken', token);
+                await secureStorage.setItem('userInfo', JSON.stringify(user));
+                set({ token, user, isLoading: false, isAuthenticated: true });
+                // Navigation will be handled by _layout.js based on profilePicture
+                return true;
+            }
+            return false;
+        } catch (error) {
+            return false;
+        }
+    },
+
+    forgotPassword: async (email) => {
+        set({ isLoading: true, error: null });
+        try {
+            await api.post('/users/forgot-password', { email });
+            set({ isLoading: false });
+            return true;
+        } catch (error) {
+            set({ isLoading: false, error: error.response?.data?.message || 'Failed to send reset email' });
+            return false;
+        }
+    },
+
+    resetPassword: async (token, password) => {
+        set({ isLoading: true, error: null });
+        try {
+            await api.post('/users/reset-password', { token, password });
+            set({ isLoading: false });
+            return true;
+        } catch (error) {
+            set({ isLoading: false, error: error.response?.data?.message || 'Password reset failed' });
+            return false;
+        }
+    },
+
+    oauthLogin: async (token) => {
+        set({ isLoading: true, error: null });
+        try {
+            await secureStorage.setItem('userToken', token);
+            const response = await api.get('/users/profile');
+            const user = response.data;
+
+            await secureStorage.setItem('userInfo', JSON.stringify(user));
+            set({ token, user, isLoading: false, isAuthenticated: true });
+            router.replace('/(tabs)');
+        } catch (error) {
+            console.error('OAuth login error:', error);
+            set({ isLoading: false, error: 'OAuth login failed', isAuthenticated: false });
+        }
+    },
+
+    logout: async () => {
+        try {
+            await secureStorage.removeItem('userToken');
+            await secureStorage.removeItem('userInfo');
+            set({ user: null, token: null, isAuthenticated: false, error: null });
+            router.replace('/(auth)/login');
+        } catch (error) {
+            console.error('Logout error:', error);
+            set({ user: null, token: null, isAuthenticated: false, error: null });
+            router.replace('/(auth)/login');
+        }
+    },
+
+    updateGamification: (xpResult, newBadges) => {
+        set((state) => {
+            if (!state.user) return state;
+            const updatedUser = { ...state.user };
+
+            if (xpResult) {
+                updatedUser.xp = xpResult.xp;
+                updatedUser.level = xpResult.level;
+            }
+
+            if (newBadges && newBadges.length > 0) {
+                const newBadgeEntries = newBadges.map(b => ({ id: b.id, date: new Date() }));
+                updatedUser.badges = [...(updatedUser.badges || []), ...newBadgeEntries];
+            }
+
+            secureStorage.setItem('userInfo', JSON.stringify(updatedUser));
+            return { user: updatedUser };
+        });
+    },
+}));
+
+export default useAuthStore;
