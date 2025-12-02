@@ -47,6 +47,12 @@
       "color": "#4A90E2",
       "androidMode": "default",
       "androidCollapsedTitle": "TimeFlow"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1e6e1501-c394-4afd-80cc-6f63a30313b8"
+      }
     }
   }
 }

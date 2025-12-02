@@ -31,8 +31,20 @@ router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 
 // OAuth Routes
-router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-router.get('/auth/google/callback', passport.authenticate('google', { session: false }), (req, res) => {
+router.get('/auth/google', (req, res, next) => {
+    const strategy = req.query.platform === 'android' ? 'google-android' : 'google-web';
+    passport.authenticate(strategy, { scope: ['profile', 'email'] })(req, res, next);
+});
+
+// Web Callback
+router.get('/auth/google/callback', passport.authenticate('google-web', { session: false }), (req, res) => {
+    const token = generateToken(req.user._id);
+    const webUrl = process.env.WEB_APP_URL || 'http://localhost:3000';
+    res.redirect(`${webUrl}/auth/success?token=${token}`);
+});
+
+// Android Callback
+router.get('/auth/google/android/callback', passport.authenticate('google-android', { session: false }), (req, res) => {
     const token = generateToken(req.user._id);
     // Redirect to app with token (Update scheme/host for production)
     res.redirect(`exp://localhost:8081/--/auth?token=${token}`);
@@ -51,4 +63,3 @@ router.route('/stats').get(protect, getUserStats);
 router.route('/dashboard/:date').get(protect, getDashboardData);
 
 export default router;
-
