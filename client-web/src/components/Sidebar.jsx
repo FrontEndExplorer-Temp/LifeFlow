@@ -1,0 +1,72 @@
+import React from 'react';
+import { NavLink } from 'react-router-dom';
+import {
+    LayoutDashboard,
+    CheckSquare,
+    DollarSign,
+    FileText,
+    Target,
+    Clock,
+    Briefcase,
+    Bot,
+    Settings,
+    LogOut
+} from 'lucide-react';
+import useAuthStore from '../store/authStore';
+import { cn } from '../utils/cn';
+
+const Sidebar = () => {
+    const { logout } = useAuthStore();
+
+    const navItems = [
+        { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+        { icon: CheckSquare, label: 'Tasks', path: '/tasks' },
+        { icon: DollarSign, label: 'Finance', path: '/finance' },
+        { icon: FileText, label: 'Notes', path: '/notes' },
+        { icon: Target, label: 'Habits', path: '/habits' },
+        { icon: Clock, label: 'Timer', path: '/timer' },
+        { icon: Briefcase, label: 'Jobs', path: '/jobs' },
+        { icon: Bot, label: 'AI Assistant', path: '/ai' },
+        { icon: Settings, label: 'Settings', path: '/settings' },
+    ];
+
+    return (
+        <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen fixed left-0 top-0 z-50">
+            <div className="p-6">
+                <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">LifeSync</h1>
+            </div>
+
+            <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+                {navItems.map((item) => (
+                    <NavLink
+                        key={item.path}
+                        to={item.path}
+                        className={({ isActive }) =>
+                            cn(
+                                'flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors',
+                                isActive
+                                    ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                                    : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                            )
+                        }
+                    >
+                        <item.icon className="w-5 h-5 mr-3" />
+                        {item.label}
+                    </NavLink>
+                ))}
+            </nav>
+
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                <button
+                    onClick={logout}
+                    className="flex items-center w-full px-4 py-3 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-colors"
+                >
+                    <LogOut className="w-5 h-5 mr-3" />
+                    Logout
+                </button>
+            </div>
+        </aside>
+    );
+};
+
+export default Sidebar;
