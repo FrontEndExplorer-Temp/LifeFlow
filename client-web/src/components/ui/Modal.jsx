@@ -29,11 +29,11 @@ const Modal = ({ isOpen, onClose, title, children, className }) => {
             <div
                 ref={modalRef}
                 className={cn(
-                    "bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md transform transition-all",
+                    "bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md transform transition-all flex flex-col max-h-[90vh]",
                     className
                 )}
             >
-                <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                         {title}
                     </h3>
@@ -44,7 +44,7 @@ const Modal = ({ isOpen, onClose, title, children, className }) => {
                         <X className="w-5 h-5" />
                     </button>
                 </div>
-                <div className="p-4">
+                <div className="p-4 overflow-y-auto">
                     {children}
                 </div>
             </div>
