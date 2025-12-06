@@ -28,7 +28,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:8081', 'exp://localhost:8081'],
+    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:8081', 'exp://localhost:8081' , 'https://time-flow-pied.vercel.app'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
