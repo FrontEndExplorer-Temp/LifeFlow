@@ -4,7 +4,11 @@ import { Platform } from 'react-native';
 import secureStorage from './secureStorage';
 
 const getBaseUrl = () => {
-    // 1. Check for production API URL from environment variable
+    // 1. First check for EXPO extra (set via app.config.js / EAS build)
+    const expoExtraApiUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_API_URL || Constants.manifest?.extra?.EXPO_PUBLIC_API_URL;
+    if (expoExtraApiUrl) return expoExtraApiUrl;
+
+    // 2. Check for production API URL from environment variable
     if (process.env.EXPO_PUBLIC_API_URL) {
         return process.env.EXPO_PUBLIC_API_URL;
     }
