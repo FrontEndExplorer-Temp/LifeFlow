@@ -39,7 +39,8 @@
           "icon": "./assets/icon.png",
           "color": "#4A90E2"
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "scheme": "timeflow",
     "notification": {

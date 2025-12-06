@@ -26,7 +26,24 @@ const useNoteStore = create((set, get) => ({
                 notes: [response.data, ...state.notes],
                 isLoading: false
             }));
-            toast.success('Note created');
+
+            if (response.data.gamification) {
+                const { xpResult } = response.data.gamification;
+                if (xpResult) {
+                    toast.success(`Note created! +${xpResult.xp} XP`, {
+                        icon: '🌟',
+                        style: {
+                            borderRadius: '10px',
+                            background: '#333',
+                            color: '#fff',
+                        },
+                    });
+                } else {
+                    toast.success('Note created');
+                }
+            } else {
+                toast.success('Note created');
+            }
             return true;
         } catch (error) {
             set({ error: error.message, isLoading: false });

@@ -32,8 +32,9 @@ const Sidebar = () => {
 
     return (
         <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen fixed left-0 top-0 z-50">
-            <div className="p-6">
-                <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">LifeSync</h1>
+            <div className="p-6 flex items-center gap-3">
+                <img src="/icon.png" alt="TimeFlow Logo" className="w-8 h-8 rounded-xl object-cover" />
+                <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">TimeFlow</h1>
             </div>
 
             <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
