@@ -46,22 +46,24 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new Error('User already exists');
     }
 
-    // Generate verification token
+    // Generate verification token (send raw token by email, store hashed value)
     const verificationToken = crypto.randomBytes(20).toString('hex');
+    const verificationTokenHash = crypto.createHash('sha256').update(verificationToken).digest('hex');
 
     const user = await User.create({
         name,
         email,
         password,
         gender,
-        verificationToken,
+        verificationToken: verificationTokenHash,
         isVerified: false
     });
 
     if (user) {
         // Send verification email
         try {
-            await sendVerificationEmail(user.email, user.verificationToken);
+            // send raw token (not hashed) so link contains the one-time token
+            await sendVerificationEmail(user.email, verificationToken);
         } catch (error) {
             console.error('Failed to send verification email:', error);
             // Consider deleting the user or allowing resend
@@ -86,7 +88,10 @@ const registerUser = asyncHandler(async (req, res) => {
 const verifyEmail = asyncHandler(async (req, res) => {
     const token = req.params.token;
 
-    const user = await User.findOne({ verificationToken: token });
+    // Hash incoming token to compare with stored hashed token
+    const verificationTokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await User.findOne({ verificationToken: verificationTokenHash });
 
     if (!user) {
         res.status(400);
@@ -139,9 +144,10 @@ const forgotPassword = asyncHandler(async (req, res) => {
     // Generate reset token
     const resetToken = crypto.randomBytes(20).toString('hex');
 
-    // Hash token and save to DB
+    // Hash token and save to DB (store hashed token, send raw token by email)
     user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+    // Set a 15-minute expiry for reset tokens
+    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 minutes
 
     await user.save();
 
@@ -182,6 +188,32 @@ const resetPassword = asyncHandler(async (req, res) => {
     await user.save();
 
     res.json({ message: 'Password updated successfully' });
+});
+
+// @desc    Validate reset token (used by web reset pages to pre-check token validity)
+// @route   GET /api/users/validate-reset/:token
+// @access  Public
+const validateResetToken = asyncHandler(async (req, res) => {
+    const { token } = req.params;
+    if (!token) {
+        res.status(400);
+        throw new Error('Token is required');
+    }
+
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await User.findOne({
+        resetPasswordToken: hashedToken,
+        resetPasswordExpire: { $gt: Date.now() }
+    });
+
+    if (!user) {
+        res.status(400);
+        throw new Error('Invalid or expired token');
+    }
+
+    // Token is valid
+    res.json({ valid: true });
 });
 
 // @desc    Get user profile
@@ -393,6 +425,8 @@ export {
     checkVerificationStatus,
     forgotPassword,
     resetPassword,
+    // Validate reset token (for web reset flows)
+    validateResetToken,
     getUserProfile,
     getUserStats,
     updateUserProfile,

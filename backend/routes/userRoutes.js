@@ -10,12 +10,14 @@ import {
     checkVerificationStatus,
     forgotPassword,
     resetPassword,
+    validateResetToken,
     getDashboardData,
 } from '../controllers/userController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
 import passport from 'passport';
 import generateToken from '../utils/generateToken.js';
+import rateLimit from 'express-rate-limit';
 
 import {
     validateRegistration,
@@ -27,8 +29,18 @@ router.post('/', validateRegistration, registerUser);
 router.post('/login', validateLogin, authUser);
 router.get('/verify/:token', verifyEmail);
 router.get('/check-verification/:email', checkVerificationStatus);
-router.post('/forgot-password', forgotPassword);
+// Rate limiter for forgot-password to prevent abuse (5 requests per 15 minutes per IP)
+const forgotPasswordLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5,
+    message: { message: 'Too many password reset requests from this IP, please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+router.post('/forgot-password', forgotPasswordLimiter, forgotPassword);
 router.post('/reset-password', resetPassword);
+router.get('/validate-reset/:token', validateResetToken);
 
 // OAuth Routes
 router.get('/auth/google', (req, res, next) => {

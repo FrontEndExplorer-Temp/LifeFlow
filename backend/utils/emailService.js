@@ -2,15 +2,24 @@ import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
-    port: process.env.SMTP_PORT || 587,
-    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+    port: Number(process.env.SMTP_PORT) || 587,
+    secure: (process.env.SMTP_SECURE === 'true') || Number(process.env.SMTP_PORT) === 465, // true for 465, false for other ports
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASSWORD,
     },
-    connectionTimeout: 10000, // 10 seconds
-    greetingTimeout: 5000, // 5 seconds
+    connectionTimeout: Number(process.env.SMTP_CONNECTION_TIMEOUT) || 10000, // milliseconds
+    greetingTimeout: Number(process.env.SMTP_GREETING_TIMEOUT) || 5000,
+    // Some providers require TLS; allow configuring rejectUnauthorized via env for strict TLS checks
+    tls: {
+        rejectUnauthorized: process.env.SMTP_TLS_REJECT_UNAUTHORIZED !== 'false'
+    }
 });
+
+// Verify transporter at startup (helps detect connectivity/auth issues early)
+transporter.verify()
+    .then(() => console.log('SMTP transporter is ready'))
+    .catch(err => console.error('SMTP transporter verification failed:', err && err.code ? err.code : err));
 
 const getEmailTemplate = (title, content, buttonText, buttonUrl) => {
     return `
@@ -50,8 +59,35 @@ const getEmailTemplate = (title, content, buttonText, buttonUrl) => {
     `;
 };
 
+// Generic sendMail function: prefer SendGrid (HTTP API) if API key is present, otherwise use SMTP transporter
+const sendMail = async (mailOptions) => {
+    if (process.env.SENDGRID_API_KEY) {
+        try {
+            const sg = await import('@sendgrid/mail');
+            sg.default.setApiKey(process.env.SENDGRID_API_KEY);
+            const msg = {
+                to: mailOptions.to,
+                from: mailOptions.from,
+                subject: mailOptions.subject,
+                html: mailOptions.html
+            };
+            await sg.default.send(msg);
+            console.log('Email sent via SendGrid to:', mailOptions.to);
+            return;
+        } catch (err) {
+            console.error('SendGrid send failed, falling back to SMTP:', err && err.message ? err.message : err);
+            // Continue to SMTP fallback
+        }
+    }
+
+    // Fallback to SMTP transporter
+    return transporter.sendMail(mailOptions);
+};
+
 export const sendVerificationEmail = async (email, token) => {
-    const verificationUrl = `http://localhost:5000/api/users/verify/${token}`;
+    // Build verification URL from env vars so production links point to the right domain
+    const baseUrl = (process.env.FRONTEND_URL || process.env.BACKEND_URL || process.env.API_URL || 'http://localhost:5000').replace(/\/$/, '');
+    const verificationUrl = `${baseUrl}/api/users/verify/${token}`;
 
     const content = `
         <p>Hello,</p>
@@ -74,20 +110,38 @@ export const sendVerificationEmail = async (email, token) => {
     };
 
     try {
-        await transporter.sendMail(mailOptions);
+        await sendMail(mailOptions);
         console.log('Verification email sent to:', email);
     } catch (error) {
-        console.error('Error sending verification email:', error);
+        // Provide structured logging but do not expose sensitive details to callers
+        console.error('Error sending verification email:', {
+            code: error && error.code,
+            message: error && error.message
+        });
+        // Re-throw a generic error for upstream callers
         throw new Error('Email could not be sent');
     }
 };
 
 export const sendPasswordResetEmail = async (email, token) => {
+    // Build a link to the frontend reset page (frontend should POST token+newPassword to /api/users/reset-password)
+    const baseUrl = (process.env.FRONTEND_URL || process.env.BACKEND_URL || process.env.API_URL || 'http://localhost:5000').replace(/\/$/, '');
+    const resetUrl = `${baseUrl}/reset-password?token=${encodeURIComponent(token)}`;
+
+    // Optionally include an 'Open in app' deep link if MOBILE_APP_SCHEME is provided
+    const appScheme = process.env.MOBILE_APP_SCHEME; // e.g., myapp:// or myapp://open
+    const appLink = appScheme ? `${appScheme.replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(token)}` : null;
+
     const content = `
         <p>Hello,</p>
-        <p>We received a request to reset the password for your account. Use the secure token below to reset your password in the app.</p>
+        <p>We received a request to reset the password for your account. Click the button below to open the secure password reset page.</p>
+        <div style="text-align:center;margin:20px 0;">
+          <a href="${resetUrl}" class="button">Reset Password</a>
+          ${appLink ? `&nbsp;<a href="${appLink}" class="button">Open in App</a>` : ''}
+        </div>
+        <p>If the button does not work, paste the following token into the password reset screen:</p>
         <div class="token-box">${token}</div>
-        <p>This token will expire in 10 minutes.</p>
+        <p>This token will expire in 15 minutes.</p>
         <p>If you didn't request a password reset, please ignore this email or contact support if you have concerns.</p>
     `;
 
@@ -106,10 +160,13 @@ export const sendPasswordResetEmail = async (email, token) => {
     };
 
     try {
-        await transporter.sendMail(mailOptions);
+        await sendMail(mailOptions);
         console.log('Password reset email sent to:', email);
     } catch (error) {
-        console.error('Error sending password reset email:', error);
+        console.error('Error sending password reset email:', {
+            code: error && error.code,
+            message: error && error.message
+        });
         throw new Error('Email could not be sent');
     }
 };
