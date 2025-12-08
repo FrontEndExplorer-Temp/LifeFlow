@@ -63,10 +63,10 @@ const useJobStore = create((set, get) => ({
         }
     },
 
-    parseJobLink: async (url) => {
+    getInterviewPrep: async (role, skills) => {
         set({ isLoading: true });
         try {
-            const response = await api.post('/jobs/parse', { url });
+            const response = await api.post('/jobs/prep', { role, skills });
             set({ isLoading: false });
             return response.data;
         } catch (error) {

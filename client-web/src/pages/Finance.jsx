@@ -89,61 +89,58 @@ const Finance = () => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Finance</h1>
-                    <p className="text-gray-500 dark:text-gray-400">Track your income and expenses</p>
+                    <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Finance</h1>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Track your income and expenses</p>
                 </div>
                 <Button onClick={() => activeTab === 'transactions' ? setIsModalOpen(true) : setIsBudgetModalOpen(true)}>
-                    <Plus className="w-5 h-5 mr-2" />
-                    {activeTab === 'transactions' ? 'Add Transaction' : 'Set Budget'}
+                    <Plus className="w-4 h-4 mr-2" />
+                    {activeTab === 'transactions' ? 'New Transaction' : 'New Budget'}
                 </Button>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="p-3 rounded-lg bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
-                            <TrendingUp className="w-6 h-6" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Income</p>
+                            <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                                ${monthlyStats?.totalIncome?.toFixed(2) || '0.00'}
+                            </p>
                         </div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">This Month</span>
+                        <TrendingUp className="w-5 h-5 text-green-600" />
                     </div>
-                    <h3 className="text-gray-500 dark:text-gray-400 text-sm font-medium">Total Income</h3>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                        ${monthlyStats?.totalIncome?.toFixed(2) || '0.00'}
-                    </p>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="p-3 rounded-lg bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400">
-                            <TrendingDown className="w-6 h-6" />
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Expense</p>
+                            <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                                ${monthlyStats?.totalExpense?.toFixed(2) || '0.00'}
+                            </p>
                         </div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">This Month</span>
+                        <TrendingDown className="w-5 h-5 text-red-600" />
                     </div>
-                    <h3 className="text-gray-500 dark:text-gray-400 text-sm font-medium">Total Expense</h3>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                        ${monthlyStats?.totalExpense?.toFixed(2) || '0.00'}
-                    </p>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="p-3 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
-                            <DollarSign className="w-6 h-6" />
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Net Balance</p>
+                            <p className={cn(
+                                "text-2xl font-semibold",
+                                (monthlyStats?.totalIncome - monthlyStats?.totalExpense) >= 0
+                                    ? "text-green-600 dark:text-green-400"
+                                    : "text-red-600 dark:text-red-400"
+                            )}>
+                                ${((monthlyStats?.totalIncome || 0) - (monthlyStats?.totalExpense || 0)).toFixed(2)}
+                            </p>
                         </div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">Balance</span>
+                        <DollarSign className="w-5 h-5 text-blue-600" />
                     </div>
-                    <h3 className="text-gray-500 dark:text-gray-400 text-sm font-medium">Net Balance</h3>
-                    <p className={cn(
-                        "text-2xl font-bold mt-1",
-                        (monthlyStats?.totalIncome - monthlyStats?.totalExpense) >= 0
-                            ? "text-green-600 dark:text-green-400"
-                            : "text-red-600 dark:text-red-400"
-                    )}>
-                        ${((monthlyStats?.totalIncome || 0) - (monthlyStats?.totalExpense || 0)).toFixed(2)}
-                    </p>
                 </div>
             </div>
 

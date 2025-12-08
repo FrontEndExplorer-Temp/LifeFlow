@@ -1,178 +1,184 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Briefcase, ExternalLink, Trash2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import useJobStore from '../store/jobStore';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import Input from '../components/ui/Input';
+import JobStats from '../components/jobs/JobStats';
+import JobCard from '../components/jobs/JobCard';
 import { cn } from '../utils/cn';
-import { format } from 'date-fns';
 
 const Jobs = () => {
-    const { jobs, fetchJobs, addJob, updateJob, deleteJob, parseJobLink, isLoading } = useJobStore();
+    const { jobs, fetchJobs, addJob, updateJob, deleteJob, getInterviewPrep, isLoading } = useJobStore();
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [parsingUrl, setParsingUrl] = useState(false);
+    const [isPrepModalOpen, setIsPrepModalOpen] = useState(false);
+    const [editingJob, setEditingJob] = useState(null);
+    const [prepData, setPrepData] = useState(null);
+    const [prepLoading, setPrepLoading] = useState(false);
     const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm();
 
     useEffect(() => {
         fetchJobs();
     }, [fetchJobs]);
 
-    const onSubmit = async (data) => {
-        const success = await addJob({
-            ...data,
-            status: 'applied', // Default status
-            dateApplied: new Date().toISOString()
-        });
-        if (success) {
-            setIsModalOpen(false);
-            reset();
-        }
+    const handleEdit = (job) => {
+        setEditingJob(job);
+        setValue('company', job.company);
+        setValue('role', job.role);
+        setValue('location', job.location);
+        setValue('link', job.link);
+        setValue('status', job.status);
+        setValue('skills', job.skills);
+        setIsModalOpen(true);
     };
 
-    const handleParse = async (e) => {
-        const url = e.target.value;
-        if (!url) return;
+    const handlePrep = async (job) => {
+        setPrepLoading(true);
+        setIsPrepModalOpen(true);
+        const data = await getInterviewPrep(job.role, job.skills);
+        setPrepData(data);
+        setPrepLoading(false);
+    };
 
-        setParsingUrl(true);
-        const data = await parseJobLink(url);
-        setParsingUrl(false);
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setEditingJob(null);
+        reset();
+    };
 
-        if (data) {
-            setValue('company', data.company);
-            setValue('position', data.position);
-            setValue('location', data.location);
-            setValue('description', data.description);
+    const onSubmit = async (data) => {
+        let success;
+        if (editingJob) {
+            await updateJob(editingJob._id, data);
+            success = true;
+        } else {
+            success = await addJob({
+                ...data,
+                dateApplied: new Date().toISOString()
+            });
+        }
+
+        if (success) {
+            handleCloseModal();
         }
     };
 
     const columns = [
-        { id: 'applied', label: 'Applied', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' },
-        { id: 'interview', label: 'Interview', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' },
-        { id: 'offer', label: 'Offer', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' },
-        { id: 'rejected', label: 'Rejected', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' },
+        { id: 'Wishlist', label: 'Wishlist', color: 'bg-gray-100 dark:bg-gray-800' },
+        { id: 'Applied', label: 'Applied', color: 'bg-blue-50 dark:bg-blue-900/10' },
+        { id: 'Interview', label: 'Interview', color: 'bg-yellow-50 dark:bg-yellow-900/10' },
+        { id: 'Offer', label: 'Offer', color: 'bg-green-50 dark:bg-green-900/10' },
+        { id: 'Rejected', label: 'Rejected', color: 'bg-red-50 dark:bg-red-900/10' },
     ];
 
     return (
-        <div className="space-y-6 h-[calc(100vh-8rem)] flex flex-col">
+        <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 flex-shrink-0">
+            <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Job Applications</h1>
-                    <p className="text-gray-500 dark:text-gray-400">Track your career opportunities</p>
+                    <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Job Applications</h1>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Track your career opportunities</p>
                 </div>
-                <Button onClick={() => setIsModalOpen(true)}>
-                    <Plus className="w-5 h-5 mr-2" />
-                    Add Application
+                <Button onClick={() => { setEditingJob(null); reset(); setIsModalOpen(true); }}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    New Application
                 </Button>
             </div>
 
+            {/* Stats */}
+            <JobStats jobs={jobs} />
+
             {/* Kanban Board */}
-            <div className="flex-1 overflow-x-auto">
-                <div className="flex gap-6 h-full min-w-[1000px]">
-                    {columns.map((column) => (
-                        <div key={column.id} className="flex-1 bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 flex flex-col">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-semibold text-gray-900 dark:text-white">{column.label}</h3>
-                                <span className={cn("px-2.5 py-0.5 rounded-full text-xs font-medium", column.color)}>
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+                {columns.map((column) => (
+                    <div key={column.id} className="flex flex-col">
+                        {/* Column Header */}
+                        <div className={cn("rounded-lg p-3 mb-3", column.color)}>
+                            <div className="flex items-center justify-between">
+                                <h3 className="font-medium text-sm text-gray-700 dark:text-gray-300">{column.label}</h3>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
                                     {jobs.filter(j => j.status === column.id).length}
                                 </span>
                             </div>
-
-                            <div className="flex-1 overflow-y-auto space-y-3 pr-2">
-                                {jobs.filter(j => j.status === column.id).map((job) => (
-                                    <div key={job._id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 group">
-                                        <div className="flex justify-between items-start">
-                                            <h4 className="font-medium text-gray-900 dark:text-white">{job.position}</h4>
-                                            <button
-                                                onClick={() => deleteJob(job._id)}
-                                                className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{job.company}</p>
-
-                                        <div className="mt-3 flex items-center justify-between text-xs text-gray-400">
-                                            <span>{format(new Date(job.dateApplied), 'MMM d')}</span>
-                                            {job.salary && <span>{job.salary}</span>}
-                                        </div>
-
-                                        <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-between">
-                                            <select
-                                                value={job.status}
-                                                onChange={(e) => updateJob(job._id, { status: e.target.value })}
-                                                className="text-xs bg-transparent border-none p-0 text-blue-600 focus:ring-0 cursor-pointer"
-                                            >
-                                                {columns.map(c => (
-                                                    <option key={c.id} value={c.id}>{c.label}</option>
-                                                ))}
-                                            </select>
-                                            {job.link && (
-                                                <a href={job.link} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-500">
-                                                    <ExternalLink className="w-4 h-4" />
-                                                </a>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
                         </div>
-                    ))}
-                </div>
+
+                        {/* Cards */}
+                        <div className="space-y-3 flex-1">
+                            {jobs.filter(j => j.status === column.id).map((job) => (
+                                <JobCard
+                                    key={job._id}
+                                    job={job}
+                                    onEdit={handleEdit}
+                                    onDelete={deleteJob}
+                                    onPrep={handlePrep}
+                                    onStatusChange={(id, status) => updateJob(id, { status })}
+                                />
+                            ))}
+
+                            {jobs.filter(j => j.status === column.id).length === 0 && (
+                                <div className="text-center py-8 text-sm text-gray-400">
+                                    No jobs
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                ))}
             </div>
 
-            {/* Add Job Modal */}
-            <Modal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                title="Add Job Application"
-            >
+            {/* Add/Edit Modal */}
+            <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={editingJob ? "Edit Application" : "New Application"}>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <Input
-                        label="Job Link (Optional - AI Auto-fill)"
-                        placeholder="Paste job URL to auto-fill..."
-                        onBlur={handleParse}
-                        {...register('link')}
-                    />
-                    {parsingUrl && <p className="text-xs text-blue-500">Analyzing job link...</p>}
-
-                    <Input
-                        label="Company"
-                        placeholder="Company Name"
-                        {...register('company', { required: 'Company is required' })}
-                        error={errors.company?.message}
-                    />
-
-                    <Input
-                        label="Position"
-                        placeholder="Job Title"
-                        {...register('position', { required: 'Position is required' })}
-                        error={errors.position?.message}
-                    />
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <Input
-                            label="Location"
-                            placeholder="e.g., Remote, NY"
-                            {...register('location')}
-                        />
-                        <Input
-                            label="Salary"
-                            placeholder="e.g., $120k"
-                            {...register('salary')}
-                        />
+                    <Input label="Company" placeholder="Company name" {...register('company', { required: 'Required' })} error={errors.company?.message} />
+                    <Input label="Role" placeholder="Job title" {...register('role', { required: 'Required' })} error={errors.role?.message} />
+                    <Input label="Skills" placeholder="e.g. React, Node.js" {...register('skills')} />
+                    <Input label="Location" placeholder="e.g. Remote, NY" {...register('location')} />
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                        <select {...register('status')} className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm dark:text-white">
+                            {columns.map(c => (<option key={c.id} value={c.id}>{c.label}</option>))}
+                        </select>
                     </div>
-
-                    <div className="flex justify-end space-x-3 pt-4">
-                        <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
-                            Cancel
-                        </Button>
-                        <Button type="submit" isLoading={isLoading}>
-                            Add Application
-                        </Button>
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button type="button" variant="ghost" onClick={handleCloseModal}>Cancel</Button>
+                        <Button type="submit" isLoading={isLoading}>{editingJob ? "Save" : "Create"}</Button>
                     </div>
                 </form>
+            </Modal>
+
+            {/* Interview Prep Modal */}
+            <Modal isOpen={isPrepModalOpen} onClose={() => setIsPrepModalOpen(false)} title="Interview Prep">
+                {prepLoading ? (
+                    <div className="flex justify-center p-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    </div>
+                ) : prepData ? (
+                    <div className="space-y-6 max-h-[60vh] overflow-y-auto">
+                        <div>
+                            <h3 className="text-sm font-semibold text-purple-600 dark:text-purple-400 mb-2">Technical Questions</h3>
+                            <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                                {prepData.technical.map((q, i) => (<li key={i}>{q}</li>))}
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2">Behavioral Questions</h3>
+                            <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                                {prepData.behavioral.map((q, i) => (<li key={i}>{q}</li>))}
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-semibold text-green-600 dark:text-green-400 mb-2">Questions to Ask</h3>
+                            <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                                {prepData.questionsToAsk.map((q, i) => (<li key={i}>{q}</li>))}
+                            </ul>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="text-center p-4 text-sm text-gray-500">No prep data available.</div>
+                )}
+                <div className="flex justify-end pt-4">
+                    <Button onClick={() => setIsPrepModalOpen(false)}>Close</Button>
+                </div>
             </Modal>
         </div>
     );

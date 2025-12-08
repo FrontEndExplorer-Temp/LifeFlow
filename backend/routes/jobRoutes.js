@@ -5,12 +5,12 @@ import {
     createJob,
     updateJob,
     deleteJob,
-    parseJobLink,
+    generateInterviewPrep,
 } from '../controllers/jobController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
 router.route('/').get(protect, getJobs).post(protect, createJob);
-router.post('/parse', protect, parseJobLink);
+router.post('/prep', protect, generateInterviewPrep);
 router.route('/:id').put(protect, updateJob).delete(protect, deleteJob);
 
 export default router;

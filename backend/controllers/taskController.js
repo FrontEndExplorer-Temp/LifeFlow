@@ -1,7 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import Task from '../models/taskModel.js';
 import DailySummary from '../models/dailySummaryModel.js';
-import { addXP, checkBadges, XP_REWARDS } from '../services/gamificationService.js';
+import { addXP, subtractXP, checkBadges, XP_REWARDS } from '../services/gamificationService.js';
 
 // @desc    Get all tasks
 // @route   GET /api/tasks
@@ -84,6 +84,22 @@ const updateTask = asyncHandler(async (req, res) => {
             const xpResult = await addXP(req.user._id, XP_REWARDS.TASK_COMPLETION);
             const newBadges = await checkBadges(req.user._id, 'TASK_COMPLETE');
             gamification = { xpResult, newBadges };
+        } else if (oldStatus === 'completed' && newStatus !== 'completed') {
+            // Reverting completion
+            const today = new Date().toISOString().split('T')[0];
+
+            // Decrement Daily Summary
+            await DailySummary.findOneAndUpdate(
+                { user: req.user._id, date: today },
+                { $inc: { completedTasksCount: -1 } }
+            );
+
+            // Import subtractXP dynamically or assume it's imported (I need to update imports)
+            // I'll update the imports in a separate tool call if needed, but for now assuming it's available or I'll fix imports next.
+            // Wait, I need to update imports. So I will assume `subtractXP` is exported from `gamificationService.js`.
+            // I'll use the imported function.
+            const xpResult = await subtractXP(req.user._id, XP_REWARDS.TASK_COMPLETION);
+            gamification = { xpResult, message: 'XP Decreased' };
         }
 
         res.json({ ...updatedTask.toObject(), gamification });

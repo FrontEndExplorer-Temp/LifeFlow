@@ -677,7 +677,8 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         padding: 4,
         marginHorizontal: 16,
-        marginBottom: 16,
+        marginBottom: 24,
+        gap: 8, // Increased gap
     },
     tab: {
         flex: 1,
@@ -706,6 +707,7 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         backgroundColor: 'rgba(0, 0, 0, 0.05)',
         marginRight: 10,
+    },
     filterTabText: {
         fontSize: 13,
         fontWeight: '600',
@@ -973,7 +975,6 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         marginRight: 8,
         marginBottom: 8,
-    },
     },
     tagTextEdit: {
         fontSize: 13,

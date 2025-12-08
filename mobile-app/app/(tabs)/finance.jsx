@@ -761,7 +761,8 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         padding: 4,
         marginHorizontal: 16,
-        marginBottom: 8,
+        marginBottom: 24,
+        gap: 8,
     },
     tab: {
         flex: 1,

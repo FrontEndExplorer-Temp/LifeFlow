@@ -1,16 +1,42 @@
-# React + Vite
+# TimeFlow Web Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+TimeFlow Web is the desktop/browser companion to the TimeFlow mobile app. It offers a synchronized experience for managing tasks, finances, notes, habits, and job applications.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Responsive Dashboard**: View your activity and stats on a larger screen.
+- **Task Management**: Kanban or List view for managing tasks and subtasks.
+- **Finance Tracker**: Manage transactions and budgets with detailed charts.
+- **Notes Editor**: Rich text editing for your notes.
+- **Job Board**: Kanban board for tracking job applications.
+- **Habit Tracker**: Visualize your habit streaks and consistency.
+- **Dark/Light Mode**: Seamless theme switching to match your preference.
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Framework**: React + Vite
+- **Styling**: Tailwind CSS
+- **State Management**: Zustand
+- **Routing**: React Router DOM
+- **Icons**: React Icons / Lucide React
+- **Charts**: Recharts
+- **Date Handling**: date-fns
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+1.  Navigate to the directory:
+    ```bash
+    cd client-web
+    ```
+
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+
+3.  Start the development server:
+    ```bash
+    npm run dev
+    ```
+
+4.  Open [http://localhost:5173](http://localhost:5173) in your browser.

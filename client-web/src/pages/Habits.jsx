@@ -48,14 +48,14 @@ const HabitCard = ({ habit, onToggle, onEdit, onDelete }) => {
 
     return (
         <div
-            className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col h-full relative overflow-hidden group"
+            className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 flex flex-col h-full group hover:shadow-md transition-shadow"
             style={{ borderLeft: `4px solid ${habit.color || COLORS[0]}` }}
         >
-            <div className="flex justify-between items-start mb-2">
+            <div className="flex justify-between items-start mb-3">
                 <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-1">{habit.name}</h3>
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-1">{habit.name}</h3>
                     {habit.description && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1">{habit.description}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-1 mt-0.5">{habit.description}</p>
                     )}
                 </div>
                 <div className="flex items-center gap-1">
@@ -77,7 +77,7 @@ const HabitCard = ({ habit, onToggle, onEdit, onDelete }) => {
             <div className="flex items-center gap-2 mb-4">
                 <div className="flex items-center text-xs font-medium text-orange-500 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-full">
                     <Flame className="w-3 h-3 mr-1" />
-                    {habit.streak || 0} streak
+                    {habit.currentStreak || 0} streak
                 </div>
                 {(habit.targetDays && habit.targetDays.length > 0) && (
                     <div className="text-xs text-gray-400">

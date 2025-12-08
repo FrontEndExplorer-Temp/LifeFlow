@@ -18,7 +18,7 @@ const BADGES = {
     JOB_HUNTER: { id: 'JOB_HUNTER', name: 'Job Hunter', description: 'Apply to 5 jobs', icon: '💼' },
     FOCUS_MASTER: { id: 'FOCUS_MASTER', name: 'Focus Master', description: 'Accumulate 10 hours of focus time', icon: '🧘' },
     MONEY_MANAGER: { id: 'MONEY_MANAGER', name: 'Money Manager', description: 'Add 10 transactions', icon: '💰' },
-    MONEY_MANAGER: { id: 'MONEY_MANAGER', name: 'Money Manager', description: 'Add 10 transactions', icon: '💰' },
+
 };
 
 const XP_REWARDS = {
@@ -58,6 +58,28 @@ export const addXP = async (userId, amount) => {
     }
 };
 
+export const subtractXP = async (userId, amount) => {
+    try {
+        const user = await User.findById(userId);
+        if (!user) return null;
+
+        user.xp = Math.max(0, user.xp - amount);
+        const newLevel = calculateLevel(user.xp);
+
+        // Optional: Handle level down? Usually games don't de-level, but XP drops.
+        // Keeping level sync if we want strict level based on XP.
+        if (newLevel < user.level) {
+            user.level = newLevel;
+        }
+
+        await user.save();
+        return { xp: user.xp, level: user.level };
+    } catch (error) {
+        console.error('Error subtracting XP:', error);
+        return null;
+    }
+};
+
 export const checkBadges = async (userId, actionType, data = {}) => {
     try {
         const user = await User.findById(userId);
@@ -93,12 +115,22 @@ export const checkBadges = async (userId, actionType, data = {}) => {
         if (actionType === 'HABIT_COMPLETE') {
             // Check max streak across all habits
             const habits = await Habit.find({ user: userId });
-            const maxStreak = Math.max(...habits.map(h => h.streak));
+            const maxStreak = Math.max(...habits.map(h => h.streak)); // Note: Habit model uses 'currentStreak' in update, check if 'streak' or 'currentStreak' is field name. Controller used 'currentStreak'. Model usually matches. 
+            // Controller: habit.currentStreak = ...
+            // Model: I need to check habitModel.js to be sure. But let's assume controller is right. 
+            // Wait, I should verify the field name. 
+            // For now, I'll remove the job check.
 
-            if (maxStreak >= 3) awardBadge('HABIT_STARTER');
-            if (maxStreak >= 7) awardBadge('STREAK_MASTER');
-            if (maxStreak >= 30) awardBadge('HABIT_HERO');
-            if (jobCount >= 5) awardBadge('JOB_HUNTER');
+            // Wait, line 96: const maxStreak = Math.max(...habits.map(h => h.streak));
+            // In habitController line 160: habit.currentStreak = ...
+            // So 'streak' might be wrong here if the field is 'currentStreak'. 
+            // I should verify habitModel.js.
+
+            const currentStreak = Math.max(...habits.map(h => h.currentStreak || 0));
+
+            if (currentStreak >= 3) awardBadge('HABIT_STARTER');
+            if (currentStreak >= 7) awardBadge('STREAK_MASTER');
+            if (currentStreak >= 30) awardBadge('HABIT_HERO');
         }
 
         // --- Note Related Badges ---

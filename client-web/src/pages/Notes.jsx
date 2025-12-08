@@ -9,34 +9,58 @@ import Input from '../components/ui/Input';
 import { cn } from '../utils/cn';
 import { format } from 'date-fns';
 
+import useThemeStore from '../store/themeStore';
+
 const COLORS = ['#ffffff', '#ffebee', '#e8f5e9', '#e3f2fd', '#fff3e0', '#f3e5f5'];
 const DARK_COLORS = ['#1f2937', '#451e1e', '#1e3b24', '#1e2f45', '#452f1e', '#361e45'];
 
 const NoteCard = ({ note, onClick, onDelete, onPin }) => {
-    // Determine background color based on theme (simplified logic for now)
-    // Ideally we'd use a context or helper to switch between light/dark variants of the stored color
-    // For now, we'll use the stored color directly, but add a class for dark mode override if needed
+    const { theme } = useThemeStore();
+    const isDarkMode = theme === 'dark';
 
-    // A better approach for the web:
-    // If the note has a color, apply it.
-    // Ensure text contrast is sufficient.
+    const getNoteTheme = (color) => {
+        let backgroundColor = color;
+        let textColor = '#111827'; // gray-900
+        let subTextColor = '#4b5563'; // gray-600
+
+        if (isDarkMode) {
+            // Try to map light -> dark
+            const lightIndex = COLORS.indexOf(color);
+            if (lightIndex !== -1) {
+                backgroundColor = DARK_COLORS[lightIndex];
+            } else if (!DARK_COLORS.includes(color) && color !== '#ffffff') {
+                // If custom color not in list, maybe keep it or darken it? 
+                // For now, keep as is, but assuming mostly preset colors.
+                // If default white/undefined, ensure it goes to dark gray
+                if (!color || color === '#ffffff') backgroundColor = DARK_COLORS[0];
+            }
+            if (!color) backgroundColor = DARK_COLORS[0];
+
+            textColor = '#f9fafb'; // gray-50
+            subTextColor = '#9ca3af'; // gray-400
+        } else {
+            // Light mode
+            const darkIndex = DARK_COLORS.indexOf(color);
+            if (darkIndex !== -1) {
+                backgroundColor = COLORS[darkIndex];
+            }
+            if (!color) backgroundColor = COLORS[0];
+            textColor = '#111827';
+            subTextColor = '#4b5563';
+        }
+        return { backgroundColor, textColor, subTextColor };
+    };
+
+    const { backgroundColor, textColor, subTextColor } = getNoteTheme(note.color);
 
     return (
         <div
             onClick={onClick}
             className="rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all cursor-pointer group flex flex-col h-64 relative overflow-hidden"
-            style={{ backgroundColor: note.color || (document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff') }}
+            style={{ backgroundColor }}
         >
-            {/* Background color handling for dark mode needs to be smarter, 
-                but for parity with mobile's simple implementation, we'll rely on the stored color 
-                or default to white/dark-gray if none. 
-                
-                Actually, to support the same palette as mobile, we should ideally map them.
-                Let's use a style override from the note.color if it exists and isn't white.
-             */}
-
             <div className="flex justify-between items-start mb-3">
-                <h3 className="font-semibold text-gray-900 dark:text-white line-clamp-1 flex-1 pr-2">{note.title}</h3>
+                <h3 className="font-semibold line-clamp-1 flex-1 pr-2" style={{ color: textColor }}>{note.title}</h3>
                 <div className="flex items-center gap-1">
                     <button
                         onClick={(e) => { e.stopPropagation(); onPin(note); }}
@@ -57,10 +81,10 @@ const NoteCard = ({ note, onClick, onDelete, onPin }) => {
                     </button>
                 </div>
             </div>
-            <div className="flex-1 overflow-hidden text-sm text-gray-600 dark:text-gray-300 prose dark:prose-invert max-w-none mb-2">
+            <div className="flex-1 overflow-hidden text-sm prose dark:prose-invert max-w-none mb-2" style={{ color: subTextColor }}>
                 <ReactMarkdown>{note.content}</ReactMarkdown>
             </div>
-            <div className="mt-auto pt-3 border-t border-black/5 dark:border-white/10 text-xs text-gray-500 dark:text-gray-400 flex justify-between items-center">
+            <div className="mt-auto pt-3 border-t border-black/5 dark:border-white/10 text-xs flex justify-between items-center" style={{ color: subTextColor, borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}>
                 <span>{format(new Date(note.updatedAt || note.createdAt), 'MMM d, yyyy')}</span>
                 {note.tags && note.tags.length > 0 && (
                     <div className="flex gap-1">
@@ -169,8 +193,15 @@ const Notes = () => {
         setValue('tags', current.filter(t => t !== tagToRemove));
     };
 
+    const { theme } = useThemeStore();
+    const isDarkMode = theme === 'dark';
+    const currentColors = isDarkMode ? DARK_COLORS : COLORS;
+
+    // ... (rest of logic)
+
     return (
         <div className="space-y-6">
+
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -277,7 +308,7 @@ const Notes = () => {
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Color</label>
                         <div className="flex gap-3">
-                            {COLORS.map((color, index) => (
+                            {currentColors.map((color, index) => (
                                 <button
                                     key={color}
                                     type="button"
