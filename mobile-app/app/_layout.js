@@ -16,7 +16,7 @@ if (typeof window !== 'undefined') {
 }
 
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import useAuthStore from '../store/authStore';
 import useSyncStore from '../store/syncStore';
 import * as SplashScreen from 'expo-splash-screen';
@@ -24,6 +24,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { ThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import useThemeStore from '../store/themeStore';
 import ErrorBoundary from '../components/ErrorBoundary';
+import AnimatedSplashScreen from '../components/AnimatedSplashScreen';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -35,6 +36,9 @@ export default function Layout() {
     const segments = useSegments();
     const router = useRouter();
 
+    // State to track if the custom animation has finished
+    const [isSplashAnimationFinished, setSplashAnimationFinished] = useState(false);
+
     useEffect(() => {
         async function prepare() {
             try {
@@ -44,7 +48,7 @@ export default function Layout() {
             } catch (e) {
                 console.warn(e);
             } finally {
-                // Hide splash screen after initialization
+                // Hide native splash screen immediately so our custom one takes over
                 await SplashScreen.hideAsync();
             }
         }
@@ -52,7 +56,7 @@ export default function Layout() {
     }, []);
 
     useEffect(() => {
-        if (isAppLoading) return;
+        if (isAppLoading || !isSplashAnimationFinished) return;
 
         const inAuthGroup = segments[0] === '(auth)';
         const isChoosingAvatar = segments[1] === 'choose-avatar';
@@ -71,9 +75,16 @@ export default function Layout() {
             // If authenticated user is in tabs but hasn't completed onboarding, redirect to avatar selection
             router.replace('/(auth)/choose-avatar');
         }
-    }, [user, segments, isAppLoading]);
+    }, [user, segments, isAppLoading, isSplashAnimationFinished]);
 
-    if (isAppLoading) return null;
+    // Show Custom Splash Screen until animation ends AND app is ready
+    if (!isSplashAnimationFinished || isAppLoading) {
+        return (
+            <AnimatedSplashScreen
+                onFinish={() => setSplashAnimationFinished(true)}
+            />
+        );
+    }
 
     return (
         <ErrorBoundary>

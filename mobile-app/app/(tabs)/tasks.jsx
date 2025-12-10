@@ -536,6 +536,30 @@ export default function TasksScreen() {
                                 ))}
                             </View>
 
+                            {/* Status Selector */}
+                            <Text style={[styles.label, themeStyles.text]}>Status:</Text>
+                            <View style={styles.statusContainer}>
+                                {['Backlog', 'Today', 'In Progress', 'Completed'].map((status) => (
+                                    <TouchableOpacity
+                                        key={status}
+                                        style={[
+                                            styles.statusChip,
+                                            themeStyles.chip,
+                                            { backgroundColor: formData.status === status ? STATUS_COLORS[status] : (isDarkMode ? '#333' : '#f5f5f5') }
+                                        ]}
+                                        onPress={() => setFormData({ ...formData, status })}
+                                    >
+                                        <Text style={[
+                                            styles.chipText,
+                                            themeStyles.chipText,
+                                            { color: formData.status === status ? '#fff' : (isDarkMode ? '#ccc' : '#666') }
+                                        ]}>
+                                            {status}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+
                             {/* Tags Input */}
                             <Text style={[styles.label, themeStyles.text]}>Tags:</Text>
                             <View style={styles.tagInputContainer}>
@@ -650,7 +674,7 @@ export default function TasksScreen() {
                     <View style={[styles.modalContent, themeStyles.modalContent, { padding: 0 }]}>
                         <CalendarView
                             tasks={[]}
-                            selectedDate={formData.dueDate ? parseISO(formData.dueDate) : new Date()}
+                            selectedDate={formData.dueDate ? new Date(formData.dueDate) : new Date()}
                             onSelectDate={handleDateSelect}
                         />
                         <TouchableOpacity
