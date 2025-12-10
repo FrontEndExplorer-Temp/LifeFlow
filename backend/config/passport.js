@@ -3,6 +3,9 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as GitHubStrategy } from 'passport-github2';
 import User from '../models/userModel.js';
 
+const PORT = process.env.PORT || 5000;
+const BASE_URL = process.env.BACKEND_URL || `http://localhost:${PORT}`;
+
 // Web Strategy
 console.log('Google Web Strategy Config:', { clientId: process.env.GOOGLE_CLIENT_ID ? 'Set' : 'Missing', clientSecret: process.env.GOOGLE_CLIENT_SECRET ? 'Set' : 'Missing' });
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
@@ -12,7 +15,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
             {
                 clientID: process.env.GOOGLE_CLIENT_ID,
                 clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-                callbackURL: '/api/users/auth/google/callback',
+                callbackURL: `${BASE_URL}/api/users/auth/google/callback`,
             },
             async (accessToken, refreshToken, profile, done) => {
                 try {
@@ -50,7 +53,7 @@ if (process.env.GOOGLE_ANDROID_CLIENT_ID && process.env.GOOGLE_ANDROID_CLIENT_SE
             {
                 clientID: process.env.GOOGLE_ANDROID_CLIENT_ID,
                 clientSecret: process.env.GOOGLE_ANDROID_CLIENT_SECRET,
-                callbackURL: '/api/users/auth/google/android/callback',
+                callbackURL: `${BASE_URL}/api/users/auth/google/android/callback`,
             },
             async (accessToken, refreshToken, profile, done) => {
                 try {
@@ -86,7 +89,7 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
             {
                 clientID: process.env.GITHUB_CLIENT_ID,
                 clientSecret: process.env.GITHUB_CLIENT_SECRET,
-                callbackURL: '/api/users/auth/github/callback',
+                callbackURL: `${BASE_URL}/api/users/auth/github/callback`,
                 scope: ['user:email'],
             },
             async (accessToken, refreshToken, profile, done) => {
