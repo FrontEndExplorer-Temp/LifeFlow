@@ -8,7 +8,6 @@ import Modal from '../components/ui/Modal';
 import Input from '../components/ui/Input';
 import { cn } from '../utils/cn';
 import { format } from 'date-fns';
-
 import useThemeStore from '../store/themeStore';
 
 const COLORS = ['#ffffff', '#ffebee', '#e8f5e9', '#e3f2fd', '#fff3e0', '#f3e5f5'];
@@ -29,9 +28,6 @@ const NoteCard = ({ note, onClick, onDelete, onPin }) => {
             if (lightIndex !== -1) {
                 backgroundColor = DARK_COLORS[lightIndex];
             } else if (!DARK_COLORS.includes(color) && color !== '#ffffff') {
-                // If custom color not in list, maybe keep it or darken it? 
-                // For now, keep as is, but assuming mostly preset colors.
-                // If default white/undefined, ensure it goes to dark gray
                 if (!color || color === '#ffffff') backgroundColor = DARK_COLORS[0];
             }
             if (!color) backgroundColor = DARK_COLORS[0];
@@ -56,7 +52,7 @@ const NoteCard = ({ note, onClick, onDelete, onPin }) => {
     return (
         <div
             onClick={onClick}
-            className="rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all cursor-pointer group flex flex-col h-64 relative overflow-hidden"
+            className="rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all cursor-pointer group flex flex-col h-40 relative overflow-hidden"
             style={{ backgroundColor }}
         >
             <div className="flex justify-between items-start mb-3">
@@ -99,10 +95,10 @@ const NoteCard = ({ note, onClick, onDelete, onPin }) => {
             </div>
         </div>
     );
-}
+};
 
 const NoteSkeleton = () => (
-    <div className="rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col h-64 animate-pulse bg-white dark:bg-gray-800">
+    <div className="rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col h-48 animate-pulse bg-white dark:bg-gray-800">
         <div className="flex justify-between items-start mb-4">
             <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
             <div className="flex gap-2">
@@ -141,8 +137,6 @@ const Notes = () => {
         fetchNotes();
     }, [fetchNotes]);
 
-    // Client-side sorting: Pinned first, then UpdatedAt desc
-    // Although backend sends it sorted, doing it here ensures immediate update on pin toggle
     const sortedNotes = [...notes].sort((a, b) => {
         if (a.isPinned === b.isPinned) {
             return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
@@ -179,7 +173,7 @@ const Notes = () => {
     const onSubmit = async (data) => {
         const noteData = {
             ...data,
-            tags: data.tags, // Already an array from hook-form state
+            tags: data.tags,
             color: selectedColor
         };
 
@@ -224,14 +218,14 @@ const Notes = () => {
     return (
         <div className="space-y-6">
 
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            {/* Header - Minimal (Restored) */}
+            <div className="flex items-center justify-between mb-8 border-b border-gray-100 dark:border-gray-800 pb-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Notes</h1>
-                    <p className="text-gray-500 dark:text-gray-400">Capture your ideas and thoughts</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Notes</h1>
+                    <p className="text-sm text-gray-500">Capture your ideas and thoughts.</p>
                 </div>
-                <Button onClick={() => handleOpenModal()}>
-                    <Plus className="w-5 h-5 mr-2" />
+                <Button onClick={() => handleOpenModal()} size="sm" className="rounded-lg">
+                    <Plus className="w-4 h-4 mr-2" />
                     New Note
                 </Button>
             </div>
@@ -250,7 +244,7 @@ const Notes = () => {
 
             {/* Notes Grid */}
             {isLoading && !notes.length ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:columns-3 xl:grid-cols-4 gap-6">
                     {[...Array(8)].map((_, i) => (
                         <NoteSkeleton key={i} />
                     ))}

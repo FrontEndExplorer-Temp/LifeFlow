@@ -28,6 +28,7 @@ export default function TabLayout() {
                 headerStyle: {
                     backgroundColor: theme.colors.header,
                 },
+                headerShown: false, // We use custom headers in screens
                 headerTintColor: theme.colors.text,
             }}
         >
@@ -46,10 +47,10 @@ export default function TabLayout() {
                 }}
             />
             <Tabs.Screen
-                name="jobs"
+                name="growth"
                 options={{
-                    title: 'Jobs',
-                    tabBarIcon: ({ color }) => <Ionicons name="briefcase-outline" size={24} color={color} />,
+                    title: 'Growth',
+                    tabBarIcon: ({ color }) => <Ionicons name="rocket-outline" size={24} color={color} />,
                 }}
             />
             <Tabs.Screen
@@ -71,13 +72,6 @@ export default function TabLayout() {
                 options={{
                     title: 'AI',
                     tabBarIcon: ({ color }) => <Ionicons name="flash-outline" size={24} color={color} />,
-                }}
-            />
-            <Tabs.Screen
-                name="habits"
-                options={{
-                    title: 'Habits',
-                    tabBarIcon: ({ color }) => <Ionicons name="repeat-outline" size={24} color={color} />,
                 }}
             />
             <Tabs.Screen

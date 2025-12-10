@@ -1,125 +1,97 @@
 # Deployment Guide
 
-This guide covers the steps to deploy the backend to **Render** and build the mobile app APK using **Expo EAS**.
+This guide details how to deploy the **TimeFlow** full-stack application.
+*   **Backend**: Node.js/Express (Render)
+*   **Client Web**: React/Vite (Vercel)
+*   **Mobile App**: React Native (Expo EAS)
 
 ---
 
 ## 🚀 Part 1: Backend Deployment (Render)
 
-We will use [Render](https://render.com) to host the Node.js/Express backend.
-
-### Prerequisites
-1.  A [GitHub](https://github.com) account.
-2.  A [Render](https://render.com) account.
-3.  Your project pushed to a GitHub repository.
+We recommend [Render](https://render.com) for hosting the Node.js backend.
 
 ### Steps
-
-1.  **Create a New Web Service**
-    *   Log in to your Render dashboard.
-    *   Click **New +** and select **Web Service**.
-    *   Connect your GitHub repository.
-
-2.  **Configure the Service**
-    *   **Name**: `life-management-api` (or your preferred name)
-    *   **Region**: Choose the one closest to you (e.g., Singapore, Frankfurt).
-    *   **Branch**: `main` (or your default branch).
-    *   **Root Directory**: `backend` (Important! Since your backend is in a subfolder).
-    *   **Runtime**: `Node`
+1.  **Push to GitHub**: Ensure your latest code is on GitHub.
+2.  **New Web Service**:
+    *   Go to [Render Dashboard](https://dashboard.render.com).
+    *   Click **New +** -> **Web Service**.
+    *   Connect your repository.
+3.  **Configuration**:
+    *   **Root Directory**: `backend`
     *   **Build Command**: `npm install`
     *   **Start Command**: `npm start`
-
-3.  **Environment Variables**
-    *   Scroll down to the **Environment Variables** section.
-    *   Click **Add Environment Variable** and add the following keys from your `.env` file:
-        *   `NODE_ENV`: `production`
-        *   `MONGO_URI`: `your_mongodb_atlas_connection_string`
-        *   `JWT_SECRET`: `your_secure_jwt_secret`
-        *   `SMTP_HOST`: `smtp.mailtrap.io` (or your provider)
-        *   `SMTP_PORT`: `587`
-        *   `SMTP_USER`: `your_smtp_user`
-        *   `SMTP_PASSWORD`: `your_smtp_password`
-        *   `SMTP_FROM_EMAIL`: `no-reply@yourdomain.com`
-        *   `GEMINI_API_KEY`: `your_google_gemini_key`
-
-4.  **Deploy**
-    *   Click **Create Web Service**.
-    *   Render will start building your app. Watch the logs for any errors.
-    *   Once finished, you will get a URL like `https://life-management-api.onrender.com`.
+4.  **Environment Variables**:
+    Add these key-value pairs in the "Environment" tab:
+    *   `NODE_ENV`: `production`
+    *   `MONGO_URI`: `your_mongodb_connection_string`
+    *   `JWT_SECRET`: `your_secret_key`
+    *   `GEMINI_API_KEY`: `your_gemini_key`
+    *   `CLIENT_URL`: `https://your-web-app.vercel.app` (Add after deploying web)
 
 ---
 
-## 📱 Part 2: Frontend Build (APK)
+## 🌐 Part 2: Web Client Deployment (Vercel)
 
-We will use **EAS Build** (Expo Application Services) to generate an APK file for Android.
-
-### Prerequisites
-1.  **EAS CLI**: Install it globally if you haven't already.
-    ```bash
-    npm install -g eas-cli
-    ```
-2.  **Expo Account**: Log in to your Expo account.
-    ```bash
-    eas login
-    ```
+We recommend [Vercel](https://vercel.com) for the React frontend.
 
 ### Steps
+1.  **New Project**:
+    *   Go to [Vercel Dashboard](https://vercel.com/dashboard).
+    *   Click **Add New...** -> **Project**.
+    *   Import your repository.
+2.  **Configuration**:
+    *   **Framework Preset**: Vite
+    *   **Root Directory**: `client-web`
+3.  **Environment Variables**:
+    *   `VITE_API_URL`: `https://life-management-api.onrender.com/api` (Your backend URL)
+4.  **Deploy**:
+    *   Click **Deploy**.
+    *   Once live, copy the URL and update your Backend's `CLIENT_URL` variable.
 
-1.  **Configure EAS**
-    *   Navigate to the mobile app directory:
-        ```bash
-        cd mobile-app
-        ```
-    *   Initialize EAS build:
-        ```bash
-        eas build:configure
-        ```
-    *   Select `Android` when prompted.
-    *   This will create an `eas.json` file.
+---
 
-2.  **Update `eas.json` for APK**
-    *   Open `eas.json` and modify the `build` section to include an `apk` profile:
+## 📱 Part 3: Mobile App Build (Expo EAS)
+
+We use **EAS Build** to generate Android APKs and iOS IPAs.
+
+### Prerequisites
+*   Install EAS CLI: `npm install -g eas-cli`
+*   Login: `eas login`
+
+### Steps
+1.  **Configure Build**:
+    ```bash
+    cd mobile-app
+    eas build:configure
+    ```
+2.  **Update `eas.json` for APK**:
+    Add this to your `eas.json` to enable direct APK downloads:
     ```json
-    {
-      "build": {
-        "preview": {
-          "android": {
-            "buildType": "apk"
-          }
-        },
-        "production": {}
+    "build": {
+      "preview": {
+        "android": {
+          "buildType": "apk"
+        }
       }
     }
     ```
-
-3.  **Update API URL**
-    *   Before building, ensure your `services/api.js` points to your **deployed Render backend URL**, not localhost.
-    *   Open `mobile-app/services/api.js`:
-    ```javascript
-    // const API_URL = 'http://localhost:5000/api'; // Comment this out
-    const API_URL = 'https://life-management-api.onrender.com/api'; // Use your Render URL
+3.  **Set API URL**:
+    Create or update `.env` in `mobile-app` (EAS supports .env):
+    ```env
+    EXPO_PUBLIC_API_URL=https://life-management-api.onrender.com/api
     ```
-
-4.  **Build the APK**
-    *   Run the build command using the preview profile:
-        ```bash
-        eas build -p android --profile preview
-        ```
-    *   EAS will ask you to generate a Keystore. Select **Yes** to let EAS handle it for you.
-
-5.  **Download**
-    *   Wait for the build to complete (this happens in the cloud).
-    *   Once done, you will get a link to download your `.apk` file.
-    *   Install this file on your Android device to test.
+4.  **Build**:
+    ```bash
+    eas build -p android --profile preview
+    ```
+5.  **Download**:
+    Use the link provided by EAS to download and install the APK.
 
 ---
 
-## 🔄 Part 3: Connecting Frontend & Backend
+## 🔄 Post-Deployment Checklist
 
-1.  **Update Backend CORS (Optional)**
-    *   If you face CORS issues, update your `backend/server.js` to allow requests from your mobile app or `*` (for development).
-
-2.  **Test the Connection**
-    *   Open the installed app.
-    *   Try to Login or Register.
-    *   If it works, your full-stack deployment is successful! 🎉
+1.  **CORS**: Ensure Backend `CLIENT_URL` matches your deployed Web URL.
+2.  **Auth Callbacks**: Update Google/GitHub OAuth callback URLs in their developer consoles to point to your production backend.
+3.  **Cron Jobs**: Render "Web Services" sleep on the free tier. For reliable cron jobs (daily summaries), consider upgrading to a paid instance or using a separate "Cron Job" service on Render.

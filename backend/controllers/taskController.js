@@ -2,12 +2,16 @@ import asyncHandler from 'express-async-handler';
 import Task from '../models/taskModel.js';
 import DailySummary from '../models/dailySummaryModel.js';
 import { addXP, subtractXP, checkBadges, XP_REWARDS } from '../services/gamificationService.js';
+import { updateSkillActivity } from '../services/skillService.js';
 
 // @desc    Get all tasks
 // @route   GET /api/tasks
 // @access  Private
 const getTasks = asyncHandler(async (req, res) => {
-    const tasks = await Task.find({ user: req.user._id }).sort({ createdAt: -1 });
+    const tasks = await Task.find({ user: req.user._id })
+        .sort({ createdAt: -1 })
+        .populate('skillId', 'name'); // Populate skill details
+    // console.log("Tasks being sent:", JSON.stringify(tasks, null, 2)); 
     res.json(tasks);
 });
 
@@ -76,6 +80,11 @@ const updateTask = asyncHandler(async (req, res) => {
             // Give small bonus per completed task
             if (updated.completedTasksCount) score = Math.min(100, score + (updated.completedTasksCount * 2));
             await DailySummary.findByIdAndUpdate(updated._id, { $set: { productivityScore: score } });
+
+            // --- Skill Streak Update ---
+            if (updatedTask.skillId && (updatedTask.taskType === 'learning' || updatedTask.taskType === 'practice')) {
+                await updateSkillActivity(req.user._id, updatedTask.skillId);
+            }
         }
 
         // --- Gamification Logic ---

@@ -36,6 +36,15 @@ const taskSchema = mongoose.Schema(
         dueDate: {
             type: Date,
         },
+        skillId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Skill',
+        },
+        taskType: {
+            type: String,
+            enum: ['general', 'learning', 'practice'],
+            default: 'general',
+        },
     },
     {
         timestamps: true,

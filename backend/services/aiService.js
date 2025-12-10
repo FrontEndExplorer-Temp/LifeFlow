@@ -3,7 +3,7 @@ import AIKey from '../models/AIKey.js';
 
 // Default Models
 const DEFAULT_MODELS = (process.env.GENERATIVE_MODELS && process.env.GENERATIVE_MODELS.split(',').map(s => s.trim()).filter(Boolean))
-    || [process.env.GENERATIVE_MODEL || 'gemini-1.5-flash'];
+    || ['gemini-1.5-flash', 'gemini-1.5-flash-8b', 'gemini-2.0-flash-exp', 'gemini-pro'];
 
 // Helper to get active keys (Prioritizing User Keys -> Global Keys)
 const getActiveKeys = async (userId) => {
@@ -58,62 +58,58 @@ export const generateAIResponse = async (prompt, opts = {}, userId) => {
 
     let lastError = null;
     const models = opts.models || (opts.model ? [opts.model] : DEFAULT_MODELS);
-    const modelName = models[0];
 
     // Iterate through keys (Round Robin / Failover)
     for (const keyObj of keys) {
-        try {
-            const apiKey = keyObj.isEnv ? keyObj.key : keyObj.getDecryptedKey();
-            const genAI = new GoogleGenerativeAI(apiKey);
-            const instance = genAI.getGenerativeModel({ model: modelName });
 
-            console.log(`🤖 AI Request using ${keyObj.label || 'Env'} on ${modelName}`);
+        // Iterate through models for this key
+        for (const modelName of models) {
+            try {
+                const apiKey = keyObj.isEnv ? keyObj.key : keyObj.getDecryptedKey();
+                const genAI = new GoogleGenerativeAI(apiKey);
+                const instance = genAI.getGenerativeModel({ model: modelName });
 
-            const result = await instance.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
+                console.log(`🤖 AI Request using ${keyObj.label || 'Env'} on ${modelName}`);
 
-            // Success! Update Usage
-            if (!keyObj.isEnv) {
-                await AIKey.findByIdAndUpdate(keyObj._id, {
-                    $inc: { usageCount: 1 },
-                    status: 'active',
-                    lastUsedAt: new Date()
-                });
-            }
+                const result = await instance.generateContent(prompt);
+                const response = await result.response;
+                const text = response.text();
 
-            return text;
-
-        } catch (error) {
-            console.error(`AI Key Failed (${keyObj.label || 'Env'}):`, error.message);
-            lastError = error;
-
-            if (!keyObj.isEnv) {
-                // Handle Failures
-                if (error.message.includes('429') || error.message.includes('Quota')) {
+                // Success! Update Usage
+                if (!keyObj.isEnv) {
                     await AIKey.findByIdAndUpdate(keyObj._id, {
-                        status: 'quota_exceeded',
-                        lastError: '429 Quota Exceeded',
-                        errorCount: (keyObj.errorCount || 0) + 1
-                    });
-                } else if (error.message.includes('401') || error.message.includes('API key not valid')) {
-                    await AIKey.findByIdAndUpdate(keyObj._id, {
-                        status: 'revoked',
-                        isActive: false,
-                        lastError: `Auth Error`,
-                    });
-                } else {
-                    await AIKey.findByIdAndUpdate(keyObj._id, {
-                        lastError: error.message,
-                        $inc: { errorCount: 1 }
+                        $inc: { usageCount: 1 },
+                        status: 'active',
+                        lastUsedAt: new Date()
                     });
                 }
+
+                return text;
+
+            } catch (error) {
+                console.error(`AI Key Failed (${keyObj.label || 'Env'} - ${modelName}):`, error.message);
+                lastError = error;
+
+                if (!keyObj.isEnv) {
+                    // Logic to handle specific errors logic (simplified for inner loop)
+                    if (error.message.includes('429') || error.message.includes('Quota')) {
+                        // Don't mark as revoked, just quota exceeded
+                    } else if (error.message.includes('401') || error.message.includes('API key not valid')) {
+                        // If Auth error, break capability for this key entirely
+                        await AIKey.findByIdAndUpdate(keyObj._id, {
+                            status: 'revoked',
+                            isActive: false,
+                            lastError: `Auth Error`,
+                        });
+                        break; // Stop trying models for this key
+                    }
+                }
+                // Continue to next model
             }
-            // Continue loop
         }
     }
 
-    throw new Error(`AI Generation failed after checking available keys. Last error: ${lastError?.message}`);
+    throw new Error(`AI Generation failed. Last error: ${lastError?.message}`);
 };
 
 // Prompts Helpers
@@ -208,6 +204,93 @@ Format:
 };
 
 
+
+export const createSkillRoadmapPrompt = (skillContext) => {
+    return `You are a curriculum expert. Create a learning roadmap for the skill: "${skillContext.skillName}".
+Context:
+- Current Level: ${skillContext.currentLevel}
+- Target Level: ${skillContext.targetLevel}
+- Minutes Per Day: ${skillContext.minutesPerDay}
+- Category: ${skillContext.category}
+
+Output a JSON array of milestones (phases). Each item should be:
+{
+  "title": "Phase Title",
+  "description": "Short description of this phase",
+  "estimatedMinutes": ${skillContext.minutesPerDay},
+  "phaseName": "Phase Name (e.g. 'Foundations', 'Advanced Concepts')"
+}
+
+Ensure the roadmap covers the gap from Current to Target level.
+Output ONLY JSON. No markdown.`;
+};
+
+export const createDailyLearningPrompt = (context) => {
+    return `You are a tutor. Generate daily learning tasks based on these unfinished roadmap items:
+${JSON.stringify(context.skills, null, 2)}
+
+Constraints:
+- Max tasks: ${context.maxTasks}
+- Total time approx: ${context.minutesAvailable} mins
+
+Output a JSON array of tasks:
+[
+  {
+    "skillName": "Name of skill",
+    "title": "Specific actionable learning task",
+    "description": "Brief instruction",
+    "estimatedMinutes": 30
+  }
+]
+Output ONLY JSON.`;
+};
+
+export const createDailyPracticePrompt = (context) => {
+    return `You are a coach. Generate practice tasks for these skills:
+${JSON.stringify(context.practicingSkills, null, 2)}
+
+Constraints:
+- Max tasks: ${context.maxTasks}
+- Total time approx: ${context.minutesAvailable} mins
+
+Output a JSON array of tasks:
+[
+  {
+    "skillName": "Name of skill",
+    "title": "Specific practice exercise",
+    "estimatedMinutes": 15
+  }
+]
+Output ONLY JSON.`;
+};
+
+export const createCombinedPlanPrompt = (context) => {
+    return `You are a productivity expert. Create a balanced daily plan combining learning and practice.
+Learning Items (Priority):
+${JSON.stringify(context.roadmapLearningSkills, null, 2)}
+
+Practice Skills (Secondary):
+${JSON.stringify(context.practicingSkills, null, 2)}
+
+Constraints:
+- Total time: ${context.minutesAvailable} mins
+- Max total tasks: 5
+
+Instructions:
+1. Generate 'learning' tasks based on the provided Learning Items.
+2. Generate 'practice' tasks. These can be:
+   - Exercises for the 'Practice Skills' list.
+   - Practical application/coding exercises for the 'Learning Items' to reinforce what was learned today.
+   - Ensure practice tasks are relevant to the specific topics in that day's learning.
+
+Output a JSON object:
+{
+  "learning": [ { "skillName": "...", "title": "...", "estimatedMinutes": ... } ],
+  "practice": [ { "skillName": "...", "title": "...", "estimatedMinutes": ... } ]
+}
+Output ONLY JSON.`;
+};
+
 export default {
     generateAIResponse,
     createDailyPlanPrompt,
@@ -216,4 +299,8 @@ export default {
     createTaskBreakdownPrompt,
     createFinanceInsightsPrompt,
     createNoteSummaryPrompt,
+    createSkillRoadmapPrompt,
+    createDailyLearningPrompt,
+    createDailyPracticePrompt,
+    createCombinedPlanPrompt,
 };

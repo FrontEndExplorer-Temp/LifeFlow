@@ -12,7 +12,8 @@ import {
     User,
     LogOut,
     Sun,
-    Moon
+    Moon,
+    Zap
 } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import useThemeStore from '../store/themeStore';
@@ -23,6 +24,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
     const navItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+        { icon: Zap, label: 'Focus Mode', path: '/focus' },
         { icon: CheckSquare, label: 'Tasks', path: '/tasks' },
         { icon: DollarSign, label: 'Finance', path: '/finance' },
         { icon: FileText, label: 'Notes', path: '/notes' },

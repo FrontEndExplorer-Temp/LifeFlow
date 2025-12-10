@@ -22,6 +22,8 @@ export const lightTheme = {
         border: '#E5E5EA',
         notification: '#FF3B30',
         primary: COLORS.primary,
+        secondary: COLORS.secondary, // Added missing secondary
+        info: COLORS.info, // Added missing info
         success: COLORS.success,
         warning: COLORS.warning,
         danger: COLORS.danger,
@@ -37,21 +39,23 @@ export const lightTheme = {
 export const darkTheme = {
     dark: true,
     colors: {
-        background: '#121212',
-        card: '#1E1E1E',
+        background: '#000000', // Deep black for better OLED saving/contrast
+        card: '#1C1C1E', // Slightly lighter dark for cards
         text: '#FFFFFF',
-        subText: '#AAAAAA',
-        border: '#333333',
+        subText: '#98989F',
+        border: '#2C2C2E',
         notification: '#FF453A',
         primary: '#0A84FF',
-        success: '#30D158',
+        secondary: '#5E5CE6', // Lighter purple for dark mode
+        info: '#64D2FF', // Lighter blue for dark mode
+        success: '#32D74B', // Lighter green
         warning: '#FF9F0A',
         danger: '#FF453A',
-        tabBar: '#1E1E1E',
-        header: '#1E1E1E',
-        input: '#2C2C2E',
-        inputBorder: '#333333',
-        chip: '#333333',
+        tabBar: '#1C1C1E',
+        header: '#1C1C1E',
+        input: '#1C1C1E',
+        inputBorder: '#38383A',
+        chip: '#2C2C2E',
         chipText: '#FFFFFF',
     },
 };

@@ -61,16 +61,31 @@ const Dashboard = () => {
     // Get recent tasks (last 5)
     const recentTasks = tasks.slice(0, 5);
 
+    const getGreeting = () => {
+        const h = new Date().getHours();
+        if (h < 5) return 'Late Night Hustle? 🌙';
+        if (h < 12) return 'Good Morning, ☀️';
+        if (h < 17) return 'Good Afternoon, 🌤️';
+        return 'Good Evening, 🌙';
+    };
+
     return (
         <div className="space-y-8">
-            {/* Header */}
-            <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                    Welcome back, {user?.name?.split(' ')[0]}! 👋
-                </h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-2">
-                    Here's your productivity dashboard for today
-                </p>
+            {/* Minimal Professional Header */}
+            <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm font-medium">
+                    <Clock className="w-4 h-4" />
+                    <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
+                </div>
+                <div className="flex items-baseline gap-3">
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+                        {getGreeting()}
+                    </h1>
+                    <span className="text-3xl font-light text-gray-400 dark:text-gray-500">|</span>
+                    <h1 className="text-3xl font-semibold text-gray-700 dark:text-gray-200">
+                        {user?.name?.split(' ')[0]}
+                    </h1>
+                </div>
             </div>
 
             {/* Stats Grid */}

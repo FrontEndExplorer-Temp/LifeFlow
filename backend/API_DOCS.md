@@ -23,6 +23,16 @@ GET /admin/users
 DELETE /admin/users/:id
 ```
 
+### Create AI Key
+```http
+POST /admin/ai-keys
+```
+
+### Get AI Keys
+```http
+GET /admin/ai-keys
+```
+
 ---
 
 ## User Routes
@@ -31,26 +41,13 @@ DELETE /admin/users/:id
 ```http
 POST /users
 ```
-
 **Body:**
 ```json
 {
   "name": "John Doe",
   "email": "john@example.com",
   "password": "password123",
-  "gender": "male" 
-}
-```
-*Note: `gender` must be either "male" or "female".*
-
-**Response:**
-```json
-{
-  "_id": "user_id",
-  "name": "John Doe",
-  "email": "john@example.com",
-  "gender": "male",
-  "token": "jwt_token"
+  "gender": "male"
 }
 ```
 
@@ -58,7 +55,6 @@ POST /users
 ```http
 POST /users/login
 ```
-
 **Body:**
 ```json
 {
@@ -67,100 +63,30 @@ POST /users/login
 }
 ```
 
-**Response:**
-```json
-{
-  "_id": "user_id",
-  "name": "John Doe",
-  "email": "john@example.com",
-  "token": "jwt_token"
-}
-```
-
-### Verify Email
+### Get User Profile
 ```http
-POST /users/verify-email
+GET /users/profile
 ```
 
-**Body:**
-```json
-{
-  "token": "verification_token"
-}
-```
-
-### Forgot Password
+### Update User Profile
 ```http
-POST /users/forgot-password
+PUT /users/profile
 ```
 
-**Body:**
-```json
-{
-  "email": "john@example.com"
-}
-```
-
-### Reset Password
+### Get User Statistics
 ```http
-POST /users/reset-password
+GET /users/stats
 ```
 
-**Body:**
-```json
-{
-  "token": "reset_token",
-  "password": "new_password123"
-}
-```
-
----
-
-## Timer Routes (Protected)
-
-### Get Active Timer
+### Get Dashboard Data
 ```http
-GET /timers/active
+GET /users/dashboard/:date
 ```
+*   `date`: YYYY-MM-DD format
 
-**Response:**
-```json
-{
-  "_id": "timer_id",
-  "user": "user_id",
-  "description": "Focus Session",
-  "startTime": "2024-01-01T10:00:00Z",
-  "status": "running",
-  "tags": ["work"]
-}
-```
-
-### Start Timer
+### OAuth (Google)
 ```http
-POST /timers/start
-```
-
-**Body:**
-```json
-{
-  "description": "Focus Session",
-  "tags": ["work", "project"]
-}
-```
-
-### Pause Timer
-```http
-PUT /timers/pause
-```
-
-### Resume Timer
-```http
-PUT /timers/resume
-```
-
-### Stop Timer
-```http
-PUT /timers/stop
+GET /users/auth/google?platform=web|android
 ```
 
 ---
@@ -171,24 +97,22 @@ PUT /timers/stop
 ```http
 GET /tasks
 ```
-
 **Query Parameters:**
-- `status` (optional): Filter by status (Todo, In Progress, Done)
+*   `status`: Filter by status (e.g., 'Backlog', 'Today')
 
 ### Create Task
 ```http
 POST /tasks
 ```
-
 **Body:**
 ```json
 {
-  "title": "Complete project",
-  "description": "Finish the documentation",
-  "status": "Todo",
-  "priority": "High",
-  "dueDate": "2024-01-15",
-  "subtasks": ["Write README", "Add examples"]
+  "title": "Task Title",
+  "description": "Optional description",
+  "priority": "Medium",
+  "dueDate": "2024-12-31",
+  "tags": ["work"],
+  "subtasks": ["Subtask 1"]
 }
 ```
 
@@ -200,6 +124,123 @@ PUT /tasks/:id
 ### Delete Task
 ```http
 DELETE /tasks/:id
+```
+
+---
+
+## Timer Routes (Protected)
+
+### Get Active Timer
+```http
+GET /timers/active
+```
+
+### Start Timer
+```http
+POST /timers/start
+```
+**Body:**
+```json
+{
+  "description": "Focus Session",
+  "tags": ["work"]
+}
+```
+
+### Pause Timer
+```http
+POST /timers/pause
+```
+
+### Resume Timer
+```http
+POST /timers/resume
+```
+
+### Stop Timer
+```http
+POST /timers/stop
+```
+
+---
+
+## Note Routes (Protected)
+
+### Get All Notes
+```http
+GET /notes
+```
+
+### Create Note
+```http
+POST /notes
+```
+**Body:**
+```json
+{
+  "title": "Meeting Notes",
+  "content": "Detailed content...",
+  "tags": ["meeting"],
+  "color": "#ffffff",
+  "isPinned": false
+}
+```
+
+### Update Note
+```http
+PUT /notes/:id
+```
+
+### Delete Note
+```http
+DELETE /notes/:id
+```
+
+---
+
+## AI Routes (Protected)
+
+### Generate Daily Plan
+```http
+POST /ai/daily-plan
+```
+
+### Get Task Suggestions
+```http
+POST /ai/task-suggestions
+```
+
+### Get Habit Insights
+```http
+POST /ai/habit-insights
+```
+
+### Task Breakdown
+```http
+POST /ai/breakdown
+```
+**Body:**
+```json
+{
+  "taskId": "optional_id",
+  "taskTitle": "Build a website"
+}
+```
+
+### Finance Insights
+```http
+POST /ai/finance-insights
+```
+
+### Summarize Note
+```http
+POST /ai/summarize-note
+```
+**Body:**
+```json
+{
+  "content": "Long note content..."
+}
 ```
 
 ---
@@ -216,43 +257,43 @@ GET /jobs
 POST /jobs
 ```
 
-**Body:**
-```json
-{
-  "company": "Tech Corp",
-  "role": "Software Engineer",
-  "status": "Applied",
-  "location": "Remote",
-  "salary": "100000",
-  "link": "https://example.com/job",
-  "dateApplied": "2024-01-01",
-  "notes": "Applied through LinkedIn"
-}
+### Update Job
+```http
+PUT /jobs/:id
+```
+
+### Delete Job
+```http
+DELETE /jobs/:id
 ```
 
 ---
 
-## Note Routes (Protected)
+## Skill Routes (Protected)
 
-### Get All Notes
+### Get All Skills
 ```http
-GET /notes
+GET /skills
 ```
 
-### Create Note
+### Create Skill
 ```http
-POST /notes
+POST /skills
 ```
 
-**Body:**
-```json
-{
-  "title": "Meeting Notes",
-  "content": "Discussed project timeline",
-  "tags": ["meeting", "project"],
-  "isPinned": false,
-  "color": "#FFE5B4"
-}
+### Update Skill
+```http
+PUT /skills/:id
+```
+
+### Delete Skill
+```http
+DELETE /skills/:id
+```
+
+### Generate Roadmap (AI)
+```http
+POST /skills/:id/roadmap
 ```
 
 ---
@@ -264,32 +305,9 @@ POST /notes
 GET /transactions
 ```
 
-**Query Parameters:**
-- `startDate` (optional): Filter from date
-- `endDate` (optional): Filter to date
-- `type` (optional): Income or Expense
-- `category` (optional): Filter by category
-
 ### Create Transaction
 ```http
 POST /transactions
-```
-
-**Body:**
-```json
-{
-  "type": "Expense",
-  "category": "Food",
-  "amount": 50.00,
-  "date": "2024-01-01",
-  "description": "Lunch",
-  "paymentMethod": "Credit Card"
-}
-```
-
-### Get Monthly Stats
-```http
-GET /transactions/monthly-stats?month=2024-01
 ```
 
 ### Get Budgets
@@ -302,20 +320,11 @@ GET /budgets
 POST /budgets
 ```
 
-**Body:**
-```json
-{
-  "category": "Food",
-  "monthlyLimit": 500,
-  "month": "2024-01"
-}
-```
-
 ---
 
 ## Habit Routes (Protected)
 
-### Get All Habits
+### Get Habits
 ```http
 GET /habits
 ```
@@ -325,52 +334,9 @@ GET /habits
 POST /habits
 ```
 
-**Body:**
-```json
-{
-  "name": "Morning Exercise",
-  "frequency": "daily",
-  "color": "#4CAF50"
-}
-```
-
-### Toggle Habit Completion
+### Toggle Completion
 ```http
 POST /habits/:id/toggle
-```
-
-**Body:**
-```json
-{
-  "date": "2024-01-01"
-}
-```
-
----
-
-## AI Routes (Protected)
-
-### Generate Daily Plan
-```http
-POST /ai/daily-plan
-```
-
-**Response:**
-```json
-{
-  "plan": "AI-generated daily plan text...",
-  "generatedAt": "2024-01-01T10:00:00Z"
-}
-```
-
-### Get Task Suggestions
-```http
-POST /ai/task-suggestions
-```
-
-### Get Habit Insights
-```http
-POST /ai/habit-insights
 ```
 
 ---
@@ -379,22 +345,7 @@ POST /ai/habit-insights
 
 ### Get Sync Status
 ```http
-GET /sync/status?lastSync=2024-01-01T00:00:00Z
-```
-
-**Response:**
-```json
-{
-  "lastSync": "2024-01-01T00:00:00Z",
-  "serverTime": "2024-01-02T10:00:00Z",
-  "pendingChanges": {
-    "tasks": 5,
-    "notes": 2,
-    "habits": 1,
-    "transactions": 3,
-    "total": 11
-  }
-}
+GET /sync/status
 ```
 
 ### Bulk Sync
@@ -402,81 +353,11 @@ GET /sync/status?lastSync=2024-01-01T00:00:00Z
 POST /sync/bulk
 ```
 
-**Body:**
-```json
-{
-  "lastSync": "2024-01-01T00:00:00Z"
-}
-```
-
-**Response:**
-```json
-{
-  "syncTime": "2024-01-02T10:00:00Z",
-  "data": {
-    "tasks": [...],
-    "notes": [...],
-    "habits": [...],
-    "transactions": [...]
-  },
-  "counts": {
-    "tasks": 5,
-    "notes": 2,
-    "habits": 1,
-    "transactions": 3
-  }
-}
-```
-
 ---
 
 ## Summary Routes (Protected)
 
-### Get Daily Stats
+### Get Daily Summary
 ```http
 GET /summary/daily
-```
-
-**Response:**
-```json
-{
-  "totalWorkSeconds": 28800,
-  "totalBreakSeconds": 3600,
-  "productivityScore": 85,
-  "completedTasks": 5
-}
-```
-
----
-
-## Error Responses
-
-All endpoints may return the following error responses:
-
-### 400 Bad Request
-```json
-{
-  "message": "Validation error message"
-}
-```
-
-### 401 Unauthorized
-```json
-{
-  "message": "Not authorized, no token"
-}
-```
-
-### 404 Not Found
-```json
-{
-  "message": "Resource not found"
-}
-```
-
-### 500 Internal Server Error
-```json
-{
-  "message": "Server error message"
-}
 ```

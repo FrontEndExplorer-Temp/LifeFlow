@@ -20,6 +20,7 @@ import aiKeyRoutes from './routes/aiKeyRoutes.js';
 import syncRoutes from './routes/syncRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import skillRoutes from './routes/skillRoutes.js';
 import initCronJobs from './cron/cronJobs.js';
 
 connectDB();
@@ -105,6 +106,7 @@ app.use('/api/ai-keys', aiKeyRoutes);
 app.use('/api/sync', syncRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/skills', skillRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running...');

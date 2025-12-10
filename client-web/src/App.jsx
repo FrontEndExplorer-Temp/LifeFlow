@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import useAuthStore from './store/authStore';
 import DashboardLayout from './layouts/DashboardLayout';
 import Dashboard from './pages/Dashboard';
+import Focus from './pages/Focus';
 import Tasks from './pages/Tasks';
 import Finance from './pages/Finance';
 import Notes from './pages/Notes';
@@ -55,6 +56,7 @@ function App() {
           }
         >
           <Route index element={<Dashboard />} />
+          <Route path="focus" element={<Focus />} />
           <Route path="tasks" element={<Tasks />} />
           <Route path="finance" element={<Finance />} />
           <Route path="notes" element={<Notes />} />
