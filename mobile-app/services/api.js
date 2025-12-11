@@ -10,7 +10,12 @@ const getBaseUrl = () => {
 
     // 2. Check for production API URL from environment variable
     if (process.env.EXPO_PUBLIC_API_URL) {
-        return process.env.EXPO_PUBLIC_API_URL;
+        let url = process.env.EXPO_PUBLIC_API_URL;
+        // Fix for SSL Protocol Error on localhost: force HTTP if backend is local
+        if (url.includes('localhost') && url.startsWith('https://')) {
+            url = url.replace('https://', 'http://');
+        }
+        return url;
     }
 
     // 2. For web, localhost is fine
