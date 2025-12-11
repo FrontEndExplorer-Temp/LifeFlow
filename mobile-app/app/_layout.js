@@ -36,27 +36,30 @@ export default function Layout() {
     const segments = useSegments();
     const router = useRouter();
 
-    // State to track if the custom animation has finished
-    const [isSplashAnimationFinished, setSplashAnimationFinished] = useState(false);
+    // State to catch app preparation errors
+    // const [isReady, setIsReady] = useState(false);
 
     useEffect(() => {
         async function prepare() {
             try {
+                // Hide native splash screen immediately so our custom one takes over
+                await SplashScreen.hideAsync();
+
                 await loadUser();
                 // Initialize sync for auto-sync and offline support
                 await initializeSync();
+
+                // Artificially wait for 4 seconds to keep the splash screen visible
+                await new Promise(resolve => setTimeout(resolve, 4000));
             } catch (e) {
                 console.warn(e);
-            } finally {
-                // Hide native splash screen immediately so our custom one takes over
-                await SplashScreen.hideAsync();
             }
         }
         prepare();
     }, []);
 
     useEffect(() => {
-        if (isAppLoading || !isSplashAnimationFinished) return;
+        if (isAppLoading) return;
 
         const inAuthGroup = segments[0] === '(auth)';
         const isChoosingAvatar = segments[1] === 'choose-avatar';
@@ -75,15 +78,11 @@ export default function Layout() {
             // If authenticated user is in tabs but hasn't completed onboarding, redirect to avatar selection
             router.replace('/(auth)/choose-avatar');
         }
-    }, [user, segments, isAppLoading, isSplashAnimationFinished]);
+    }, [user, segments, isAppLoading]);
 
-    // Show Custom Splash Screen until animation ends AND app is ready
-    if (!isSplashAnimationFinished || isAppLoading) {
-        return (
-            <AnimatedSplashScreen
-                onFinish={() => setSplashAnimationFinished(true)}
-            />
-        );
+    // Show Custom Splash Screen while app is loading
+    if (isAppLoading) {
+        return <AnimatedSplashScreen />;
     }
 
     return (

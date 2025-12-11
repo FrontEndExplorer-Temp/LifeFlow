@@ -61,6 +61,16 @@ const TaskCard = ({ task, onEdit }) => {
                 </p>
             )}
 
+            {/* Skill Badge (for Practice Tasks) */}
+            {task.skillName && (
+                <div className="flex items-center gap-1.5 mb-3">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300">
+                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        Practice: {task.skillName}
+                    </span>
+                </div>
+            )}
+
             {/* Tags */}
             {task.tags && task.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mb-3">

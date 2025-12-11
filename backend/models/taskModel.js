@@ -45,6 +45,9 @@ const taskSchema = mongoose.Schema(
             enum: ['general', 'learning', 'practice'],
             default: 'general',
         },
+        skillName: {
+            type: String, // Denormalized for easier frontend filtering
+        },
     },
     {
         timestamps: true,

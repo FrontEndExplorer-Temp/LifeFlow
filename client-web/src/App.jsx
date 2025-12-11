@@ -11,6 +11,8 @@ import Notes from './pages/Notes';
 import Timer from './pages/Timer';
 import Habits from './pages/Habits';
 import Jobs from './pages/Jobs';
+import Skills from './pages/Skills';
+import SkillDetail from './pages/SkillDetail';
 import AI from './pages/AI';
 import Profile from './pages/Profile';
 import Login from './pages/Login';
@@ -63,6 +65,8 @@ function App() {
           <Route path="timer" element={<Timer />} />
           <Route path="habits" element={<Habits />} />
           <Route path="jobs" element={<Jobs />} />
+          <Route path="skills" element={<Skills />} />
+          <Route path="skills/:id" element={<SkillDetail />} />
           <Route path="ai" element={<AI />} />
           <Route path="profile" element={<Profile />} />
           {/* Add other feature routes here */}

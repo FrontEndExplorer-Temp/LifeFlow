@@ -8,6 +8,7 @@ import {
     Target,
     Clock,
     Briefcase,
+    BookOpen,
     Bot,
     User,
     LogOut,
@@ -31,6 +32,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         { icon: Target, label: 'Habits', path: '/habits' },
         { icon: Clock, label: 'Timer', path: '/timer' },
         { icon: Briefcase, label: 'Jobs', path: '/jobs' },
+        { icon: BookOpen, label: 'Skills', path: '/skills' },
         { icon: Bot, label: 'AI Assistant', path: '/ai' },
         { icon: User, label: 'Profile', path: '/profile' },
     ];
@@ -50,7 +52,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 isOpen ? "translate-x-0" : "-translate-x-full"
             )}>
                 <div className="p-6 flex items-center gap-3">
-                    <img src="/icon.png" alt="TimeFlow Logo" className="w-8 h-8 rounded-xl object-cover" />
+                    <img src="/icon-2.png" alt="TimeFlow Logo" className="w-8 h-8 rounded-xl object-cover" />
                     <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">TimeFlow</h1>
                 </div>
 

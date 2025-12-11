@@ -34,7 +34,7 @@ router.post('/', protect, async (req, res) => {
             targetLevel,
             minutesPerDay: minutesPerDay || 30,
             category: category || 'General',
-            status: 'learning'
+            status: req.body.status || 'learning'
         });
         res.status(201).json(skill);
     } catch (error) {

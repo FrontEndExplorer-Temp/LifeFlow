@@ -14,7 +14,8 @@ export default function CreateSkillScreen() {
         category: 'Development', // Default
         currentLevel: 'Beginner',
         targetLevel: 'Advanced',
-        minutesPerDay: '30'
+        minutesPerDay: '30',
+        status: 'learning'
     });
     const [isLoading, setIsLoading] = useState(false);
 
@@ -91,6 +92,39 @@ export default function CreateSkillScreen() {
             </View>
 
             <View style={styles.formGroup}>
+                <Text style={[styles.label, themeStyles.text]}>Goal</Text>
+                <View style={styles.goalContainer}>
+                    <TouchableOpacity
+                        style={[
+                            styles.goalOption,
+                            form.status === 'learning' && { backgroundColor: theme.colors.info, borderColor: theme.colors.info },
+                            { borderColor: theme.colors.border }
+                        ]}
+                        onPress={() => setForm({ ...form, status: 'learning' })}
+                    >
+                        <Text style={[
+                            styles.goalText,
+                            form.status === 'learning' ? { color: '#fff' } : themeStyles.text
+                        ]}>Learn New Skill</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[
+                            styles.goalOption,
+                            form.status === 'practicing' && { backgroundColor: theme.colors.success, borderColor: theme.colors.success },
+                            { borderColor: theme.colors.border }
+                        ]}
+                        onPress={() => setForm({ ...form, status: 'practicing' })}
+                    >
+                        <Text style={[
+                            styles.goalText,
+                            form.status === 'practicing' ? { color: '#fff' } : themeStyles.text
+                        ]}>Practice Existing</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+
+            <View style={styles.formGroup}>
                 <Text style={[styles.label, themeStyles.text]}>Minutes Per Day</Text>
                 <TextInput
                     style={[styles.input, themeStyles.input]}
@@ -114,7 +148,7 @@ export default function CreateSkillScreen() {
                 )}
             </TouchableOpacity>
 
-        </ScrollView>
+        </ScrollView >
     );
 }
 
@@ -155,5 +189,21 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: 'bold',
         fontSize: 18,
+    },
+    goalContainer: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    goalOption: {
+        flex: 1,
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    goalText: {
+        fontWeight: '600',
+        fontSize: 14,
     }
 });

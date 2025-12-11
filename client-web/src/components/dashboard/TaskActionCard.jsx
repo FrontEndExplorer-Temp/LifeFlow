@@ -52,6 +52,11 @@ const TaskActionCard = ({ task, icon: Icon, color, subColor }) => {
                     <Icon className={cn("w-5 h-5", isActive ? "text-indigo-600 dark:text-indigo-400" : "text-gray-400 dark:text-gray-500")} />
                 </div>
                 <div className="min-w-0">
+                    {(task.skillName || (task.skillId && task.skillId.name)) && (
+                        <span className="inline-block px-1.5 py-0.5 mb-1 text-[10px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/30 rounded">
+                            {task.skillName || task.skillId.name || task.skillId}
+                        </span>
+                    )}
                     <h4 className={cn("font-medium truncate transition-colors", isActive ? "text-indigo-900 dark:text-indigo-100" : "text-gray-900 dark:text-white")}>
                         {task.title}
                     </h4>

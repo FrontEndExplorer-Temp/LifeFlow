@@ -74,7 +74,8 @@ export const createTasksFromAi = async ({ userId, tasks, taskType, skillId }) =>
             priority: 'Medium',
             estimatedMinutes: t.estimatedMinutes || 30,
             taskType: taskType, // 'learning' or 'practice'
-            skillId: skillId || t.skillId // Pass explicit ID or let logic handle it if mapping needed
+            skillId: skillId || t.skillId, // Pass explicit ID or let logic handle it if mapping needed
+            skillName: t.skillName // Essential for frontend filtering
         });
 
         await newTask.save();

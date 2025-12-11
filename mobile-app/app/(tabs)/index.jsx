@@ -164,9 +164,9 @@ export default function HomeScreen() {
                     <Ionicons name={icon} size={20} color={color} />
                 </View>
                 <View style={{ flex: 1, marginLeft: 12 }}>
-                    {task.skillId && (
+                    {(task.skillName || (task.skillId && task.skillId.name)) && (
                         <Text style={[styles.skillTag, { color: color }]}>
-                            {task.skillId.name ? task.skillId.name.toUpperCase() : 'SKILL'}
+                            {(task.skillName || task.skillId.name).toUpperCase()}
                         </Text>
                     )}
                     <Text style={[styles.taskTitleCard, themeStyles.text]} numberOfLines={2}>{task.title}</Text>

@@ -252,6 +252,8 @@ ${JSON.stringify(context.practicingSkills, null, 2)}
 Constraints:
 - Max tasks: ${context.maxTasks}
 - Total time approx: ${context.minutesAvailable} mins
+- IMPORTANT: Generate UNIQUE, NON-REPETITIVE, and CREATIVE challenges. 
+- Avoid generic tasks. Vary between Debugging, Refactoring, Mini-Projects, and Optimization.
 
 Output a JSON array of tasks:
 [
