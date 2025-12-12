@@ -25,6 +25,14 @@ const userSchema = mongoose.Schema(
             required: true,
             default: false,
         },
+        isBanned: {
+            type: Boolean,
+            default: false,
+        },
+        bannedExpiresAt: {
+            type: Date,
+            default: null,
+        },
         verificationToken: String,
         resetPasswordToken: String,
         resetPasswordExpire: Date,

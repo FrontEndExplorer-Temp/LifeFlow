@@ -39,4 +39,25 @@ const admin = (req, res, next) => {
     }
 };
 
-export { protect, admin };
+const checkMaintenanceMode = asyncHandler(async (req, res, next) => {
+    // Import SystemSetting here to avoid circular dependencies if any (though unlikely)
+    // Dynamic import inside async function or top level if clean. Sticking to top level import is better but let's see.
+    // NOTE: Need to import SystemSetting at the top.
+
+    // Allow admins to bypass maintenance
+    if (req.user && req.user.isAdmin) {
+        return next();
+    }
+
+    const { default: SystemSetting } = await import('../models/systemSettingModel.js');
+    const settings = await SystemSetting.findOne();
+
+    if (settings && settings.isMaintenanceMode) {
+        res.status(503);
+        throw new Error('System is currently under maintenance. Please try again later.');
+    }
+
+    next();
+});
+
+export { protect, admin, checkMaintenanceMode };

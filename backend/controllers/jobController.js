@@ -186,4 +186,25 @@ const generateInterviewPrep = asyncHandler(async (req, res) => {
     }
 });
 
-export { getJobs, createJob, updateJob, deleteJob, generateInterviewPrep };
+
+
+// @desc    Get job statistics
+// @route   GET /api/jobs/stats
+// @access  Private
+const getJobStats = asyncHandler(async (req, res) => {
+    const totalJobs = await Job.countDocuments({ user: req.user._id });
+    const pendingJobs = await Job.countDocuments({ user: req.user._id, status: 'Applied' });
+    const interviewJobs = await Job.countDocuments({ user: req.user._id, status: 'Interviewing' });
+    const offerJobs = await Job.countDocuments({ user: req.user._id, status: 'Offer' });
+    const rejectedJobs = await Job.countDocuments({ user: req.user._id, status: 'Rejected' });
+
+    res.json({
+        total: totalJobs,
+        applied: pendingJobs,
+        interviewing: interviewJobs,
+        offer: offerJobs,
+        rejected: rejectedJobs
+    });
+});
+
+export { getJobs, createJob, updateJob, deleteJob, generateInterviewPrep, getJobStats };

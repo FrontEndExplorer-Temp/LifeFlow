@@ -4,37 +4,41 @@ import { Platform } from 'react-native';
 import secureStorage from './secureStorage';
 
 const getBaseUrl = () => {
+    let url = null;
+
     // 1. First check for EXPO extra (set via app.config.js / EAS build)
     const expoExtraApiUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_API_URL || Constants.manifest?.extra?.EXPO_PUBLIC_API_URL;
-    if (expoExtraApiUrl) return expoExtraApiUrl;
-
+    if (expoExtraApiUrl) {
+        url = expoExtraApiUrl;
+    }
     // 2. Check for production API URL from environment variable
-    if (process.env.EXPO_PUBLIC_API_URL) {
-        let url = process.env.EXPO_PUBLIC_API_URL;
-        // Fix for SSL Protocol Error on localhost: force HTTP if backend is local
-        if (url.includes('localhost') && url.startsWith('https://')) {
-            url = url.replace('https://', 'http://');
+    else if (process.env.EXPO_PUBLIC_API_URL) {
+        url = process.env.EXPO_PUBLIC_API_URL;
+    }
+    // 3. For web, localhost is fine
+    else if (Platform.OS === 'web') {
+        url = 'http://localhost:5000/api';
+    }
+    // 4. For physical devices, we need the local IP
+    else {
+        const hostUri = Constants.expoConfig?.hostUri || Constants.manifest?.debuggerHost;
+        if (hostUri) {
+            const ip = hostUri.split(':')[0];
+            url = `http://${ip}:5000/api`;
+        } else if (Platform.OS === 'android') {
+            url = 'http://10.0.2.2:5000/api';
+        } else {
+            url = 'http://localhost:5000/api';
         }
-        return url;
     }
 
-    // 2. For web, localhost is fine
-    if (Platform.OS === 'web') return 'http://localhost:5000/api';
-
-    // 3. For physical devices, we need the local IP
-    // Constants.expoConfig.hostUri contains the IP of the Expo server (e.g., 192.168.1.5:8081)
-    const hostUri = Constants.expoConfig?.hostUri || Constants.manifest?.debuggerHost;
-
-    if (hostUri) {
-        const ip = hostUri.split(':')[0];
-        // Assuming backend runs on port 5000
-        return `http://${ip}:5000/api`;
+    // Global Fix for SSL Protocol Error on localhost:
+    // If the URL points to localhost but uses HTTPS, force it to HTTP.
+    if (url && url.includes('localhost') && url.startsWith('https://')) {
+        url = url.replace('https://', 'http://');
     }
 
-    // 4. Fallback for emulators if hostUri is missing
-    if (Platform.OS === 'android') return 'http://10.0.2.2:5000/api';
-
-    return 'http://localhost:5000/api';
+    return url;
 };
 
 const API_URL = getBaseUrl();

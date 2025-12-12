@@ -111,8 +111,10 @@ const resetKey = asyncHandler(async (req, res) => {
     const key = await AIKey.findById(req.params.id);
 
     if (key) {
-        // Only owner or admin can delete
-        if (key.owner.toString() !== req.user._id.toString() && !req.user.isAdmin) {
+        // Only owner or admin can reset
+        const isOwner = key.owner && key.owner.toString() === req.user._id.toString();
+
+        if (!isOwner && !req.user.isAdmin) {
             res.status(401);
             throw new Error('Not authorized to reset this key');
         }

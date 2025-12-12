@@ -19,6 +19,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import AdminDashboard from './pages/AdminDashboard';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuthStore();
@@ -69,6 +70,7 @@ function App() {
           <Route path="skills/:id" element={<SkillDetail />} />
           <Route path="ai" element={<AI />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="admin" element={<AdminDashboard />} />
           {/* Add other feature routes here */}
         </Route>
       </Routes>

@@ -21,6 +21,11 @@ const authUser = asyncHandler(async (req, res) => {
             throw new Error('Please verify your email address.');
         }
 
+        if (user.isBanned) {
+            res.status(403);
+            throw new Error('Your account has been suspended. Please contact support.');
+        }
+
         res.json({
             _id: user._id,
             name: user.name,
@@ -240,6 +245,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
             xp: user.xp,
             level: user.level,
             badges: user.badges,
+            isAdmin: user.isAdmin,
         });
     } else {
         res.status(404);
@@ -316,6 +322,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
             gender: updatedUser.gender,
             profilePicture: updatedUser.profilePicture,
             onboardingCompleted: updatedUser.onboardingCompleted,
+            isAdmin: updatedUser.isAdmin,
             token: generateToken(updatedUser._id),
         });
     } else {

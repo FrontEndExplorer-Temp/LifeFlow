@@ -1,16 +1,10 @@
 import express from 'express';
 const router = express.Router();
-import {
-    getJobs,
-    createJob,
-    updateJob,
-    deleteJob,
-    generateInterviewPrep,
-} from '../controllers/jobController.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { getJobs, createJob, updateJob, deleteJob, getJobStats } from '../controllers/jobController.js';
+import { protect, checkMaintenanceMode } from '../middleware/authMiddleware.js';
 
-router.route('/').get(protect, getJobs).post(protect, createJob);
-router.post('/prep', protect, generateInterviewPrep);
-router.route('/:id').put(protect, updateJob).delete(protect, deleteJob);
+router.route('/').get(protect, checkMaintenanceMode, getJobs).post(protect, checkMaintenanceMode, createJob);
+router.route('/stats').get(protect, checkMaintenanceMode, getJobStats);
+router.route('/:id').put(protect, checkMaintenanceMode, updateJob).delete(protect, checkMaintenanceMode, deleteJob);
 
 export default router;

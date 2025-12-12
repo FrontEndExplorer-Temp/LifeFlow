@@ -1,16 +1,17 @@
 import express from 'express';
-const router = express.Router();
-import {
-    getHabits,
-    createHabit,
-    updateHabit,
-    deleteHabit,
-    toggleCompletion,
-} from '../controllers/habitController.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { getHabits, createHabit, updateHabit, deleteHabit, toggleCompletion } from '../controllers/habitController.js';
+import { protect, checkMaintenanceMode } from '../middleware/authMiddleware.js';
 
-router.route('/').get(protect, getHabits).post(protect, createHabit);
-router.route('/:id').put(protect, updateHabit).delete(protect, deleteHabit);
-router.route('/:id/toggle').post(protect, toggleCompletion);
+const router = express.Router();
+
+router.route('/')
+    .get(protect, checkMaintenanceMode, getHabits)
+    .post(protect, checkMaintenanceMode, createHabit);
+
+router.route('/:id')
+    .put(protect, checkMaintenanceMode, updateHabit)
+    .delete(protect, checkMaintenanceMode, deleteHabit);
+
+router.route('/:id/toggle').put(protect, checkMaintenanceMode, toggleCompletion);
 
 export default router;

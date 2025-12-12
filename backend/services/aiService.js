@@ -25,8 +25,24 @@ const getActiveKeys = async (userId) => {
         isActive: true
     }).sort('lastUsedAt');
 
-    // 3. Merge: Personal first, then Global
-    return [...personalKeys, ...globalKeys];
+    // 3. Get System Master Key (from Settings)
+    // Dynamic import to avoid circular dependency if any
+    const { default: SystemSetting } = await import('../models/systemSettingModel.js');
+    const settings = await SystemSetting.findOne();
+
+    const systemKeys = [];
+    if (settings && settings.globalGeminiKey) {
+        systemKeys.push({
+            _id: 'system_master_key', // Mock ID
+            key: settings.globalGeminiKey,
+            isEnv: true, // Treat as Env/System key (no usage tracking on AIKey model)
+            getDecryptedKey: function () { return this.key },
+            label: 'System Master Key'
+        });
+    }
+
+    // 4. Merge: Personal first, then Global, then System Master
+    return [...personalKeys, ...globalKeys, ...systemKeys];
 };
 
 /**

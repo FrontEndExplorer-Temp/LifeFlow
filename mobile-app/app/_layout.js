@@ -38,6 +38,7 @@ export default function Layout() {
 
     // State to catch app preparation errors
     // const [isReady, setIsReady] = useState(false);
+    const [isSplashAnimationFinished, setIsSplashAnimationFinished] = useState(false);
 
     useEffect(() => {
         async function prepare() {
@@ -49,8 +50,7 @@ export default function Layout() {
                 // Initialize sync for auto-sync and offline support
                 await initializeSync();
 
-                // Artificially wait for 4 seconds to keep the splash screen visible
-                await new Promise(resolve => setTimeout(resolve, 4000));
+                // Removed artificial delay as Animation component now handles minimum timing
             } catch (e) {
                 console.warn(e);
             }
@@ -80,9 +80,14 @@ export default function Layout() {
         }
     }, [user, segments, isAppLoading]);
 
-    // Show Custom Splash Screen while app is loading
-    if (isAppLoading) {
-        return <AnimatedSplashScreen />;
+    // Show Custom Splash Screen until both App Loading AND Animation are done
+    if (!isSplashAnimationFinished) {
+        return (
+            <AnimatedSplashScreen
+                isAppReady={!isAppLoading}
+                onFinish={() => setIsSplashAnimationFinished(true)}
+            />
+        );
     }
 
     return (

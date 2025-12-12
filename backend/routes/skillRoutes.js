@@ -27,10 +27,11 @@ router.get('/', protect, async (req, res) => {
  */
 router.post('/', protect, async (req, res) => {
     try {
-        const { name, targetLevel, minutesPerDay, category } = req.body;
+        const { name, targetLevel, minutesPerDay, category, currentLevel } = req.body;
         const skill = await Skill.create({
             user: req.user._id,
             name,
+            currentLevel: currentLevel || 'Beginner',
             targetLevel,
             minutesPerDay: minutesPerDay || 30,
             category: category || 'General',

@@ -1,10 +1,5 @@
 import { create } from 'zustand';
-import axios from 'axios';
-import useAuthStore from './authStore';
-import { Platform } from 'react-native';
-
-// Configure base URL based on environment (similar to your likely authStore setup)
-const API_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000/api' : 'http://localhost:5000/api';
+import api from '../services/api';
 
 const useSkillStore = create((set, get) => ({
     skills: [],
@@ -14,10 +9,7 @@ const useSkillStore = create((set, get) => ({
     fetchSkills: async () => {
         set({ isLoading: true, error: null });
         try {
-            const token = useAuthStore.getState().token;
-            const config = { headers: { Authorization: `Bearer ${token}` } };
-
-            const response = await axios.get(`${API_URL}/skills`, config);
+            const response = await api.get('/skills');
             set({ skills: response.data, isLoading: false });
         } catch (error) {
             set({
@@ -30,10 +22,7 @@ const useSkillStore = create((set, get) => ({
     createSkill: async (skillData) => {
         set({ isLoading: true, error: null });
         try {
-            const token = useAuthStore.getState().token;
-            const config = { headers: { Authorization: `Bearer ${token}` } };
-
-            const response = await axios.post(`${API_URL}/skills`, skillData, config);
+            const response = await api.post('/skills', skillData);
             set(state => ({
                 skills: [...state.skills, response.data],
                 isLoading: false
@@ -51,10 +40,7 @@ const useSkillStore = create((set, get) => ({
     generateRoadmap: async (skillId) => {
         set({ isLoading: true, error: null });
         try {
-            const token = useAuthStore.getState().token;
-            const config = { headers: { Authorization: `Bearer ${token}` } };
-
-            const response = await axios.post(`${API_URL}/skills/${skillId}/roadmap`, {}, config);
+            const response = await api.post(`/skills/${skillId}/roadmap`);
 
             // Update local state
             set(state => ({
@@ -79,10 +65,7 @@ const useSkillStore = create((set, get) => ({
     generateDailyLearning: async (params = {}) => {
         set({ isLoading: true, error: null });
         try {
-            const token = useAuthStore.getState().token;
-            const config = { headers: { Authorization: `Bearer ${token}` } };
-
-            const response = await axios.post(`${API_URL}/skills/daily-learning`, params, config);
+            const response = await api.post('/skills/daily-learning', params);
             set({ isLoading: false });
             return response.data; // { message, tasks }
         } catch (error) {
@@ -97,10 +80,7 @@ const useSkillStore = create((set, get) => ({
     generateDailyPractice: async (params = {}) => {
         set({ isLoading: true, error: null });
         try {
-            const token = useAuthStore.getState().token;
-            const config = { headers: { Authorization: `Bearer ${token}` } };
-
-            const response = await axios.post(`${API_URL}/skills/daily-practice`, params, config);
+            const response = await api.post('/skills/daily-practice', params);
             set({ isLoading: false });
             return response.data; // { message, tasks }
         } catch (error) {
@@ -115,10 +95,7 @@ const useSkillStore = create((set, get) => ({
     generateDailyPlan: async (params = {}) => {
         set({ isLoading: true, error: null });
         try {
-            const token = useAuthStore.getState().token;
-            const config = { headers: { Authorization: `Bearer ${token}` } };
-
-            const response = await axios.post(`${API_URL}/skills/daily-plan`, params, config);
+            const response = await api.post('/skills/daily-plan', params);
             set({ isLoading: false });
             return response.data; // { message, totalTasks, tasks }
         } catch (error) {
@@ -132,9 +109,6 @@ const useSkillStore = create((set, get) => ({
 
     toggleRoadmapItem: async (skillId, itemIndex) => {
         try {
-            const token = useAuthStore.getState().token;
-            const config = { headers: { Authorization: `Bearer ${token}` } };
-
             // Optimistic Update
             set(state => ({
                 skills: state.skills.map(skill => {
@@ -149,9 +123,10 @@ const useSkillStore = create((set, get) => ({
                 })
             }));
 
-            await axios.patch(`${API_URL}/skills/${skillId}/roadmap/${itemIndex}`, {}, config);
+            await api.patch(`/skills/${skillId}/roadmap/${itemIndex}`);
         } catch (error) {
             console.error('Failed to toggle roadmap item', error);
+            // Revert on failure (simple refetch for now)
             get().fetchSkills();
         }
     }

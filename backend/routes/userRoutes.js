@@ -13,7 +13,7 @@ import {
     validateResetToken,
     getDashboardData,
 } from '../controllers/userController.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { protect, checkMaintenanceMode } from '../middleware/authMiddleware.js';
 
 import passport from 'passport';
 import generateToken from '../utils/generateToken.js';
@@ -77,9 +77,9 @@ router.get('/auth/github/callback', passport.authenticate('github', { session: f
 });
 
 router.route('/profile')
-    .get(protect, getUserProfile)
-    .put(protect, validateProfileUpdate, updateUserProfile);
-router.route('/stats').get(protect, getUserStats);
-router.route('/dashboard/:date').get(protect, getDashboardData);
+    .get(protect, checkMaintenanceMode, getUserProfile)
+    .put(protect, checkMaintenanceMode, validateProfileUpdate, updateUserProfile);
+router.route('/stats').get(protect, checkMaintenanceMode, getUserStats);
+router.route('/dashboard/:date').get(protect, checkMaintenanceMode, getDashboardData);
 
 export default router;

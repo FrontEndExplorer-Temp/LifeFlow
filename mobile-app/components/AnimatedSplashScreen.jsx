@@ -6,29 +6,25 @@ import useThemeStore from '../store/themeStore';
 
 const { width } = Dimensions.get('window');
 
-const AnimatedSplashScreen = ({ onFinish }) => {
+const AnimatedSplashScreen = ({ onFinish, isAppReady }) => {
     const insets = useSafeAreaInsets();
     const { isDarkMode } = useThemeStore();
 
     // -- ANIMATION VALUES --
-    // Logo: Opacity 0 -> 1, Scale 0.96 -> 1.0
     const logoOpacity = useRef(new Animated.Value(0)).current;
     const logoScale = useRef(new Animated.Value(0.96)).current;
-
-    // Glow: Opacity 0 -> 1 (Softly increases with logo)
     const glowOpacity = useRef(new Animated.Value(0)).current;
-
-    // Text: Opacity 0 -> 1, TranslateY 8 -> 0
     const textOpacity = useRef(new Animated.Value(0)).current;
     const textTranslateY = useRef(new Animated.Value(8)).current;
-
-    // Container Exit
     const containerOpacity = useRef(new Animated.Value(1)).current;
 
+    // Track if entrance is done so we can trigger exit immediately if app is already ready
+    const [entranceFinished, setEntranceFinished] = React.useState(false);
+
     useEffect(() => {
-        // Total Duration: 1.2s Sequence + Hold
+        // -- ENTRANCE ANIMATION --
         Animated.sequence([
-            // Step 1: Logo Entrance (0.0s -> 0.3s)
+            // Step 1: Logo Entrance (0.3s)
             Animated.parallel([
                 Animated.timing(logoOpacity, {
                     toValue: 1,
@@ -47,7 +43,7 @@ const AnimatedSplashScreen = ({ onFinish }) => {
                 }),
             ]),
 
-            // Step 2: App Name Fade-in (0.3s -> 0.7s) -> Duration 400ms
+            // Step 2: App Name Fade-in (0.4s)
             Animated.parallel([
                 Animated.timing(textOpacity, {
                     toValue: 1,
@@ -61,19 +57,27 @@ const AnimatedSplashScreen = ({ onFinish }) => {
                 }),
             ]),
 
-            // Step 3: Hold (0.7s -> 1.2s) -> Duration 500ms
+            // Step 3: Minimum Hold (0.5s)
             Animated.delay(500),
 
-            // Step 4: Optional Soft Fade Out to Home (Extra Polish)
+        ]).start(() => {
+            setEntranceFinished(true);
+        });
+    }, []);
+
+    // -- EXIT TRIGGER --
+    useEffect(() => {
+        if (entranceFinished && isAppReady) {
+            // Run Exit Animation
             Animated.timing(containerOpacity, {
                 toValue: 0,
                 duration: 400,
                 useNativeDriver: true,
-            })
-        ]).start(() => {
-            if (onFinish) onFinish();
-        });
-    }, []);
+            }).start(() => {
+                if (onFinish) onFinish();
+            });
+        }
+    }, [entranceFinished, isAppReady]);
 
     // -- COLORS --
     const backgroundColor = isDarkMode ? '#0E0E10' : '#FFFFFF';
@@ -82,8 +86,6 @@ const AnimatedSplashScreen = ({ onFinish }) => {
     // Glow Colors & Opacity
     const glowInner = '#3AB4FF';
     const glowOuter = '#7B4DFF';
-    // Light: Inner 12%, Outer 8% -> approx 0.12, 0.08 alpha
-    // Dark: Inner 30%, Outer 20% -> approx 0.30, 0.20 alpha
     const glowColors = isDarkMode
         ? ['rgba(58, 180, 255, 0.30)', 'rgba(123, 77, 255, 0.20)', 'transparent']
         : ['rgba(58, 180, 255, 0.12)', 'rgba(123, 77, 255, 0.08)', 'transparent'];
@@ -97,7 +99,7 @@ const AnimatedSplashScreen = ({ onFinish }) => {
                 opacity: containerOpacity
             }
         ]}>
-            {/* Glow Layer - Now fills the entire screen container due to absoluteFillObject */}
+            {/* Glow Layer */}
             <Animated.View
                 style={[
                     styles.glowContainer,
@@ -107,7 +109,7 @@ const AnimatedSplashScreen = ({ onFinish }) => {
                 <LinearGradient
                     colors={glowColors}
                     style={styles.glow}
-                    start={{ x: 0.5, y: 0.5 }} // Radial-ish from center
+                    start={{ x: 0.5, y: 0.5 }}
                     end={{ x: 1, y: 1 }}
                 />
             </Animated.View>

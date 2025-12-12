@@ -22,7 +22,7 @@ const aiKeySchema = mongoose.Schema(
         owner: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
-            required: true,
+            required: false, // Changed to false to support Global/Legacy keys
         },
         isGlobal: {
             type: Boolean,

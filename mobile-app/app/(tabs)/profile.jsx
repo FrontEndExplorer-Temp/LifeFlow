@@ -62,6 +62,12 @@ const ProfileSkeleton = () => {
 export default function ProfileScreen() {
     const router = useRouter();
     const { user, logout, refreshUser } = useAuthStore();
+
+    // DEBUG: Check user object for admin status
+    useEffect(() => {
+        console.log("Current User in Profile:", JSON.stringify(user, null, 2));
+    }, [user]);
+
     const { isDarkMode } = useThemeStore();
 
     const [stats, setStats] = useState({

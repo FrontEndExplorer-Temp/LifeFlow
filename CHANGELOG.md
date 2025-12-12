@@ -2,9 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.3.0] - 2025-12-07
+## [1.3.0] - 2025-12-12
 
 ### Added
+- **Admin System Controls**
+  - **Maintenance Mode**: Global system lockdown switch. Blocks all non-admin access to Tasks, Habits, Budgets, Notes, and Jobs endpoints.
+  - **Global AI Key Management**: Centralized Gemini API Key injection. Acts as a fallback for users who haven't provided their own key.
+  - **Admin Activity Logs**: Comprehensive audit logging for all admin actions (Bans, Role Changes, System Toggles).
+  - **Role Management**: Ability to promote/demote users to/from Admin status.
+  - **User Bans**: Temporary (timed) and permanent ban functionality with "Suspended" account enforcement.
+  - **Web Admin Dashboard**: Fully responsive Activity Logs, Settings, and User Management interface.
+
 - **Authentication & Security**
   - Hashed verification and reset tokens for enhanced security
   - Token validation endpoint (`GET /api/users/validate-reset/:token`) for pre-checking token validity
@@ -12,6 +20,7 @@ All notable changes to this project will be documented in this file.
   - SendGrid email API fallback with conditional sending strategy
 
 - **User Experience - Mobile**
+  - **Settings Tab**: New admin settings screen for managing Maintenance Mode and Global Keys.
   - Improved error messages in login/signup screens (now shows actual error details instead of generic "Something went wrong")
   - Simplified login UI by removing redundant "Have a reset token?" link
   - Deep link support for password reset emails with `MOBILE_APP_SCHEME` environment variable

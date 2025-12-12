@@ -33,6 +33,7 @@ This project is a monorepo divided into three specialized workspaces:
 *   **💰 Finance Tracker**: Comprehensive income/expense tracking and budgeting.
 *   **🌱 Habit Builder**: Daily habit tracking with streak visualization and gamification.
 *   **💼 Job Tracker**: Manage your career search with a dedicated application pipeline.
+*   **🛡️ Admin System**: Full control with Maintenance Mode, User Bans, Role Management, and Global AI Keys.
 *   **🔄 Sync**: Real-time cross-device synchronization with offline support.
 
 ---
@@ -69,11 +70,11 @@ For detailed setup instructions, please refer to the specific **README** in each
 
 ---
 
-## � Documentation
+## 📚 Documentation
 
 *   **[Deployment Guide](./DEPLOYMENT.md)** - Instructions for deploying to Render, Vercel, and Play Store.
 *   **[API Documentation](./backend/API_DOCS.md)** - Full reference for all backend endpoints.
-*   **[Changelog](./CHANGELOG.md)** - History of changes and updates (Current: v1.4.0).
+*   **[Changelog](./CHANGELOG.md)** - History of changes and updates (Current: v1.3.0).
 
 ## 🤝 Contributing
 
