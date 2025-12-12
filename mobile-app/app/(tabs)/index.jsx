@@ -7,6 +7,7 @@ import useAuthStore from '../../store/authStore';
 import useSummaryStore from '../../store/summaryStore';
 import useTaskStore from '../../store/taskStore';
 import useThemeStore from '../../store/themeStore';
+import useNotificationStore from '../../store/notificationStore';
 import useSkillStore from '../../store/skillStore';
 
 const { width } = Dimensions.get('window');
@@ -214,7 +215,22 @@ export default function HomeScreen() {
                     <Text style={[styles.greetingSub, themeStyles.subText]}>{getGreeting()}</Text>
                     <Text style={[styles.greeting, themeStyles.text]}>{user?.name}</Text>
                 </View>
-                {/* Placeholder for potential profile image or settings icon */}
+                <TouchableOpacity onPress={() => router.push('/notifications')} style={styles.notificationBtn}>
+                    <Ionicons name="notifications-outline" size={24} color={theme.colors.text} />
+                    {useNotificationStore.getState().unreadCount > 0 && (
+                        <View style={{
+                            position: 'absolute',
+                            top: 0,
+                            right: 0,
+                            width: 10,
+                            height: 10,
+                            borderRadius: 5,
+                            backgroundColor: '#FF3B30',
+                            borderWidth: 1,
+                            borderColor: theme.colors.background
+                        }} />
+                    )}
+                </TouchableOpacity>
             </View>
 
             {activeTimer && (

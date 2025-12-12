@@ -321,6 +321,15 @@ const useNotificationStore = create((set, get) => ({
         }
     },
 
+    clearAllNotifications: async () => {
+        try {
+            await api.delete('/notifications');
+            set({ notifications: [], unreadCount: 0 });
+        } catch (error) {
+            console.error('Failed to clear notifications:', error);
+        }
+    },
+
     reset: () => set({ notifications: [], unreadCount: 0, isLoading: false, error: null }),
 }));
 
